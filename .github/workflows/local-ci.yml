@@ -1,0 +1,38 @@
+name: Local foundation
+on:
+  pull_request:
+  push:
+    branches: [main, chore/MS-000-local-foundation]
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: local
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: local/.node-version
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: local/package.json
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:toolchain
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm test:integration
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

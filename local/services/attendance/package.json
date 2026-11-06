@@ -1,0 +1,5 @@
+{
+  "name": "@makerspace/attendance", "private": true, "version": "0.0.0", "type": "module",
+  "scripts": { "start": "node index.ts", "db:migrate": "node database.ts --migrate", "test": "vitest run ." },
+  "dependencies": { "better-sqlite3": "12.11.1" }
+}

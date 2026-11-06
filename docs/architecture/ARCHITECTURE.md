@@ -1,6 +1,6 @@
 # Local-first microservice architecture
 
-Status: proposed design for the new foundation. Initial implementation task: MS-000. Diagrams show intended boundaries, not a claim that services have been built.
+Status: MS-000 foundation is implemented and locally verified on Windows, including real CPU inference under application-scoped outbound firewall isolation and native console Ctrl+C/restart. The first diagram matches the running service boundaries; later-feature diagrams remain proposals. Linux/remote CI has not run. On this PC the developer probe needs --cpu because the existing Ollama CUDA runner crashes; no automatic fallback or driver change is introduced.
 
 ## Decision and tradeoff
 
@@ -77,6 +77,14 @@ Use `/api/v1` for browser contracts and `/internal/v1` for service contracts. Ru
 
 Initial internal authentication is a generated shared local service token stored outside Git. Before any future LAN/multi-host deployment, replace it with scoped credentials per caller/service and authenticated encrypted transport. The gateway must strip caller-supplied internal identity headers and construct its own trusted context only after authorization.
 
+### Bootstrap configuration contract (MS-000 group 2b)
+
+`local/packages/config/` is a Node-only technical helper with no domain services or database models. Its pure parser validates common environment settings; its explicit loader reads workspace `.env` and applies known process environment overrides without mutating `process.env`. Each service entrypoint explicitly validates this bootstrap schema before binding; service-specific domain configuration will belong to the owning service when introduced.
+
+Only literal IPv4 loopback HTTP origins are accepted, with matching service URL/listener ports and no collisions with other listeners, Vite, or Ollama. Runtime paths remain inside ignored workspace `.runtime/`, with separate attendance and knowledge directories; symlinks/junctions are rejected. `.env` contains a generated 256-bit service token, never returned by configuration CLI output. `setup:local` uses exclusive file creation and never replaces existing configuration. `config:check` verifies settings without querying dependencies. A blank model produces `model_not_configured`. See [the setup runbook](../LOCAL_SETUP.md#application-configuration) for precedence, format, and platform limits.
+
+The implemented request path is browser to gateway, gateway to authenticated attendance/knowledge HTTP routes, and knowledge to fixed Ollama discovery paths. Generation exists only as an explicitly invoked knowledge CLI. Shared packages provide strict v1 schemas, request IDs, allowlisted logging and bounded HTTP helpers; gateway imports no service implementation or database. Aggregate requests use concurrent two-second calls and a five-second shared snapshot cache. Built assets are served from a fixed validated route map with same-origin CSP and disabled camera/microphone permissions. Native Node 24 runs separate TypeScript processes; Vite bundles local production assets and runs only in development.
+
 ## Local data strategy
 
 - One SQLite database file per owning service, accessed through a repository interface. Each service has versioned, append-only migrations and parameterized queries.
@@ -131,7 +139,9 @@ Scale in stages: optimize the measured bottleneck on one PC; move an overloaded 
 
 ## Migration from the existing application
 
-MS-000 adds only `local/` plus narrowly necessary repo configuration. It does not cut over hosting, delete the existing application, import live databases, or port every feature. Later feature tasks selectively reuse useful UI/schema/test ideas while replacing Cloudflare bindings with service-owned local repositories and OpenAI calls with Ollama.
+The baseline checkout is the separate `Abhinash2018/Makerspace-V1` repository and contains documentation only. Keep `AGENTS.md`, `README.md`, and `docs/` at root. MS-000 adds the runtime workspace under `local/`, root CI as needed, and updates these documents. There is no legacy app or root package-manager workspace here to migrate or exclude. The older MakerspaceAssistant repository remains a separate historical reference; this task makes no changes to it.
+
+MS-000 does not cut over hosting, import live databases, or port every feature. Later feature tasks may selectively reuse reviewed UI/schema/test ideas while replacing Cloudflare bindings with service-owned local repositories and OpenAI calls with Ollama. Validate any reused code when that task begins.
 
 Preserve the existing app's documented behavior when migrating: optional photo, separate face enrollment consent, self-reported identity labeling, protected history/photos, no automatic enrollment of old photos, no door unlocking, and no implied occupancy measurement. The old documented 30-day visit/photo and 90-day enrollment retention values are project defaults, not a new institutional policy approval.
 

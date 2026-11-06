@@ -16,7 +16,7 @@ Only **MS-000** is specified for implementation now. Future rows reserve IDs and
 | MS-009 | `feat/MS-009-lan-kiosk` | Local-network iPad mode, trusted HTTPS, gateway-only exposure, Safari tests | MS-001, relevant enabled feature tasks |
 | MS-010 | `chore/MS-010-local-operations` | Reliable service startup, scheduled cleanup, backups/restore, offline packaging, load checks | Enabled data/AI feature tasks |
 
-Each row becomes `local/docs/tasks/MS-NNN-description.md` by copying [TEMPLATE.md](TEMPLATE.md) when that task begins. Fill it before coding and update it in the same branch. Tasks may change order based on dependencies; add an architecture decision when changing ownership or contracts.
+Each row becomes `docs/tasks/MS-NNN-description.md` by copying [TEMPLATE.md](TEMPLATE.md) when that task begins. Project documents stay in root `docs/`; runtime code belongs under `local/`. Fill the task before coding and update it in the same branch. Tasks may change order based on dependencies; add an architecture decision when changing ownership or contracts.
 
 MS-003 and MS-004 are separate because loading PDFs is different from generating a grounded answer. MS-002 must work without either of them. Voice and face matching remain optional. No automatic staff-pairing requirement is introduced: the desired kiosk flow stays automatic while staff functions are protected.
 

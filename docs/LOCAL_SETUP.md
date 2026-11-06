@@ -1,6 +1,10 @@
 # Local setup and offline operating contract
 
-Status: instructions for the MS-000 implementer to turn into a tested runbook. Application commands below do not exist until MS-000 is implemented. Target: native Windows first; document Linux support separately when tested.
+Status: MS-000 implementation, automated Windows checks, real CPU inference under application-scoped outbound firewall isolation, and Windows console Ctrl+C/restart checks pass. Linux/remote CI has not run; no deployment or real visitor workflow is enabled.
+
+Project documentation lives in root `docs/`. Use the `local/` workspace and [its command guide](../local/README.md). Tested pins include Node `24.22.2`, pnpm `10.34.9`, TypeScript `5.9.3`, Fastify `5.12.8`, Zod `4.6.7`, better-sqlite3 `12.11.1`, React/React DOM `19.3.1`, Vite `8.3.7`, Vitest `5.1.0`, Playwright `1.65.0` and ESLint `10.14.0`. All package versions are fixed in manifests and the lockfile.
+
+Baseline inspection found machine Node `25.8.1` and npm `11.11.0`; pnpm and Ollama were not found on PATH. Validation used checksum-verified portable Node/pnpm tools in Windows temp, with PATH changes scoped to the checking processes. The machine-wide tools and settings remain unchanged. Ask before machine-wide installation or configuration changes. A tooling check does not establish application or real-model readiness.
 
 ## One-time setup versus daily operation
 
@@ -18,9 +22,9 @@ Before disconnecting the internet, choose an available local chat model that fit
 
 No particular RAM/GPU or model was verified for this project during document preparation. Start with a model appropriate to the actual machine and measure. Missing hardware information must not block creating the foundation: tests use fake Ollama responses and the UI can show degraded status until a real model is configured.
 
-## Application configuration to implement
+## Application configuration
 
-Create a non-secret `.env.example` with documented values:
+The committed non-secret `local/.env.example` contains these values:
 
 ```dotenv
 APP_HOST=127.0.0.1
@@ -36,17 +40,31 @@ RUNTIME_DIR=.runtime
 LOG_LEVEL=info
 ```
 
-`setup:local` copies defaults into ignored `.env`, generates a cryptographically random internal token, and creates private runtime directories. It refuses to replace existing config or keys. It does not pull models. An empty model setting produces an explicit `model_not_configured` capability state rather than failing the whole app. Reject non-loopback service/model URLs in this initial deployment and do not follow redirects to other hosts.
+`setup:local` reads `.env.example`, generates a cryptographically random 32-byte internal token encoded as 64 hexadecimal characters, creates service runtime directories, and writes ignored `.env` using exclusive creation. It refuses to replace existing config or keys and never prints the token. Generation uses the example rather than ambient environment overrides. It does not pull models, contact Ollama, or create databases. Existing runtime contents are preserved. Filesystem failures can leave empty directories; inspect the failure without deleting existing data or forcing config replacement.
 
-Resolve `RUNTIME_DIR` relative to the local workspace root, not the process's arbitrary current working directory. Use service-specific subdirectories. Avoid file permission claims that were not tested on Windows.
+Run `pnpm config:check` after editing `.env`. Known process environment values override file values; missing non-secret keys use defaults. Blank invalid values fail. The loader does not mutate `process.env` or write files. `.env` must be a regular file of at most 16 KiB with unique supported single-line assignments; comments, CRLF, and quoted single-line values are supported. Unknown keys, duplicate assignments, and multiline values fail. Errors include fixed guidance and field names, never supplied values or stack traces.
 
-## Setup sequence after implementation
+Validation requires literal `127.0.0.1` for binding and service/model HTTP origins. Hostname aliases, IPv6, credentials, URL paths/query/fragment, and cloud-tagged model names are rejected. Service URL ports must match their listener settings; gateway, attendance, knowledge, Vite (5173), and Ollama ports must all differ. The HTTP adapter rejects redirects and bounds time/body size; configuration validation itself makes no network requests.
+
+`RUNTIME_DIR` resolves relative to the local workspace root, not the process's arbitrary current working directory, and must remain within its ignored `.runtime/` tree. Attendance and knowledge use distinct subdirectories. Existing symlink/junction components and file collisions are rejected. Setup requests modes `0600` for `.env` and `0700` for directories; Windows ACL inheritance is unchanged, and owner-only Windows permissions have not been established by these tests.
+
+An empty model is valid and produces `model_not_configured`. Model discovery runs only in knowledge and uses a two-second deadline; gateway snapshots are cached for five seconds. The explicitly invoked chat probe allows up to 120 seconds for cold loading, has bounded output and supports cancellation. Configuration validation does not establish model installation, listener readiness, filesystem writability, or offline inference. The application's `.env` never configures the separate Ollama daemon.
+
+## Setup sequence
 
 From `local/`, install dependencies using the committed lockfile, run `pnpm setup:local`, configure the downloaded model in `.env`, and run `pnpm db:migrate`. Start Ollama once using its installed application/service, then start `pnpm dev` for development or `pnpm build` followed by `pnpm start` for the production-style local run.
+
+You can leave the model blank and start the shell without Ollama. Each migration command creates only its owner's migration metadata and can be rerun safely. Startup never migrates automatically or recreates a DB. Do not run setup again over an existing .env. The launcher reports occupied ports without terminating existing processes and leaves Ollama under operator control. Ctrl+C requests graceful owned-child shutdown, with an owned-process fallback after five seconds. Windows IPC and native console-event shutdown/restart are verified.
+
+The later real-machine check also delivered Windows `CTRL_C_EVENT` to a dedicated PowerShell console running `pnpm start`: all three app ports closed, Ollama stayed running, and restart succeeded. The tool's pseudo-terminal interrupt was inconclusive; the dedicated-console result is the recorded evidence, not a claim that a human pressed a key.
 
 Production browser address: `http://127.0.0.1:3000`. Development UI: `http://127.0.0.1:5173`, with the development proxy forwarding `/api` to port 3000. Use the project's origin allowlist for these exact origins.
 
 Run `pnpm doctor` and `pnpm ollama:probe` for setup diagnosis. The probe calls the knowledge adapter from a local CLI, not from a visitor-accessible chat route. If Ollama is already active, do not launch another copy or kill the existing process. Show a useful message on port conflicts.
+
+For this machine's installed Ollama 0.32.5 and NVIDIA driver 546.18, the CUDA runner returns HTTP 500 with `device kernel image is invalid`. Use `pnpm ollama:probe --cpu` for the verified CPU diagnostic path. This explicitly sends `num_gpu: 0`, with 4096-token context and eight-token output bounds, for that request only. Automatic mode remains available on compatible drivers; no driver update or persistent daemon change was made. qwen3:4b (Q4_K_M, Apache license) was already installed and passed without downloading a model.
+
+Doctor exits 1 for degraded/unavailable and 0 only for all-ready. Model failure does not make attendance/knowledge DB readiness fail. A stopped internal service leaves the gateway UI/status readable. Status may take five seconds to refresh; the browser polls every five seconds, so allow about ten seconds to observe recovery. Service restart is explicit; the launcher is not a production supervisor.
 
 ## Offline verification
 

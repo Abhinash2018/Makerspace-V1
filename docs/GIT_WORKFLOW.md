@@ -2,11 +2,15 @@
 
 ## Team rule
 
-For every task, create a short-lived branch from current `main`, add its specification under `local/docs/tasks/`, implement and test on that branch, rebase on updated `origin/main`, and use **Squash and merge** on the pull request. The task document and implementation land together in one main commit.
+For every task, create a short-lived branch from current `main`, add its specification under `docs/tasks/`, implement and test on that branch, rebase on updated `origin/main`, and use **Squash and merge** on the pull request. The task document and implementation land together in one main commit.
 
 Rebase updates the feature branch's base. Squash combines the PR's commits when it enters main. GitHub's “Rebase and merge” button is a different merge choice; do not select it for this workflow. Local interactive squashing is optional cleanup, not an additional required step.
 
 Do not create all future feature branches now. Create each from current main when its dependencies have merged. The task file remains in main afterward as the permanent design and verification record.
+
+For this project, ask the owner before creating or switching branches, committing, pushing, rebasing, merging, deleting files/branches, or changing machine-wide settings. Approval for one action does not approve later actions. Prepare and inspect the concrete diff and verification before requesting commit approval. The command examples below describe the workflow; they are not standing authorization to run them.
+
+Use ordered commit groups on the task branch. Finish one coherent group with its relevant tests and documentation, review its diff, obtain approval, then commit only its intentional paths before implementing the next group. Do not accumulate the whole task into one development commit. Final squash merging still produces one task commit on main. MS-000's group order and verification checkpoints are in [its task file](tasks/MS-000-foundation.md#ordered-commit-groups).
 
 | Task type | Branch example | Task document | Squash commit example |
 | --- | --- | --- | --- |
@@ -14,11 +18,11 @@ Do not create all future feature branches now. Create each from current main whe
 | Feature | `feat/MS-002-manual-checkin` | `MS-002-manual-checkin.md` | `feat(MS-002): record idempotent manual check-ins` |
 | Fix | `fix/MS-020-checkin-retry` | `MS-020-checkin-retry.md` | `fix(MS-020): prevent duplicate visits on retry` |
 
-## Initial foundation in the existing repository
+## Initial foundation in Makerspace-V1
 
-This repository already has main history. Do not run an orphan-branch reset, overwrite main, or delete working features to simulate a new repository. Add the new `local/` foundation through MS-000. Its squash commit becomes the first commit of the new architecture, while previous history remains available.
+This checkout is `Abhinash2018/Makerspace-V1`, with existing main history and a documentation-only baseline at `ccf3c34`. Add the runtime under `local/` and keep project documents in root `docs/`. The older MakerspaceAssistant application is a separate repository. Do not run an orphan-branch reset, overwrite main, or copy its deployment/data into this checkout. The MS-000 squash commit adds the foundation while preserving this repository's history.
 
-If you later explicitly choose a completely new, empty repository, the bootstrap can be one root commit on main after local validation. Verify the remote is truly empty first. Do not apply that exception to the existing MakerspaceAssistant repository.
+This repository is already initialized; an empty-repository bootstrap exception does not apply.
 
 ## 1. Start a task
 
@@ -30,7 +34,7 @@ git pull --ff-only origin main
 git switch -c chore/MS-000-local-foundation
 ```
 
-For a future task, use its branch name and copy `local/docs/tasks/TEMPLATE.md` to the task's own filename. Fill in purpose, scope, dependencies, contracts, and acceptance criteria before implementing it. Commit the task file early, then update it as evidence develops.
+For a future task, use its branch name and copy `docs/tasks/TEMPLATE.md` to the task's own filename. Fill in purpose, scope, dependencies, contracts, and acceptance criteria before implementing it. Commit the task file early after approval, then update it as evidence develops.
 
 Use small, understandable commits while working. Stage intentional paths; inspect `git diff --cached` before committing. Do not blindly stage runtime files or credentials. Include the task ID in commit messages and the PR title.
 
@@ -83,7 +87,7 @@ After confirming the PR is merged and the work is present on main, delete the re
 ## PR description template
 
 ```markdown
-Task: MS-000 — local/docs/tasks/MS-000-foundation.md
+Task: MS-000 — docs/tasks/MS-000-foundation.md
 
 Problem and result:
 Explain what this task enables in two or three sentences.

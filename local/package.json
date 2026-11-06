@@ -1,0 +1,44 @@
+{
+  "name": "@makerspace/local",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local-first Makerspace workspace",
+  "type": "module",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": "24.22.2",
+    "pnpm": "10.34.9"
+  },
+  "scripts": {
+    "preinstall": "node scripts/check-toolchain.mjs",
+    "check:toolchain": "node scripts/check-toolchain.mjs",
+    "setup:local": "node scripts/setup-local.mjs",
+    "config:check": "node scripts/check-config.mjs",
+    "test:tooling": "node --test tests/tooling/*.test.mjs",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --project tsconfig.json",
+    "db:migrate": "node scripts/migrate.ts",
+    "dev": "node scripts/launch.ts dev",
+    "start": "node scripts/launch.ts start",
+    "doctor": "node scripts/doctor.ts",
+    "ollama:probe": "node services/knowledge/probe.ts",
+    "build": "pnpm typecheck && pnpm --filter @makerspace/kiosk build",
+    "test": "pnpm test:tooling && vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.14.0",
+    "globals": "16.5.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.7",
+    "vitest": "5.1.0"
+  }
+}

@@ -8,7 +8,7 @@ Copy this file for each new task. Do not implement from an unfilled template.
 | Branch | `feat/MS-NNN-short-name` |
 | Owner | Name |
 | Dependencies | IDs that must already be merged |
-| Task path | `local/docs/tasks/MS-NNN-short-name.md` |
+| Task path | `docs/tasks/MS-NNN-short-name.md` |
 | PR | Add real URL when created |
 | Intended squash commit | `feat(MS-NNN): describe resulting behavior` |
 
@@ -22,7 +22,7 @@ List exactly what this branch implements. List explicit exclusions that prevent 
 
 ## Read before coding
 
-Read `local/AGENTS.md`, architecture, Git workflow, the owning service's documentation, and relevant existing code/tests. Identify assumptions that must be checked in source.
+Read root `AGENTS.md`, `docs/architecture/ARCHITECTURE.md`, `docs/GIT_WORKFLOW.md`, the owning service's documentation, and relevant existing code/tests. Runtime paths are relative to `local/`; task documents stay in root `docs/tasks/`. Identify assumptions that must be checked in source.
 
 ## Design and boundaries
 
@@ -41,10 +41,14 @@ Use a compact Mermaid diagram only if it makes the interaction clearer. Explain 
 ## Implementation plan
 
 1. Inspect the current code and record the baseline.
-2. Implement the smallest complete behavior within scope.
-3. Add tests for meaningful success, failure, authorization, and retry paths.
-4. Update contracts and human documentation.
-5. Record verification, prepare the PR, rebase, and recheck.
+2. Define ordered commit groups, each with a coherent outcome, proposed message, and relevant checks. Include tests and documentation with the behavior they verify.
+3. Implement and verify one group, inspect its diff, and request approval before committing its intentional paths. Continue with the next group after that checkpoint.
+4. Record task-wide acceptance evidence and prepare the PR description.
+5. Request approval for publication, rebase, and merge separately. Recheck after an approved rebase; use Squash and merge when acceptance and review are satisfied.
+
+| Order | Outcome and proposed commit message | Verification before commit | Status / actual commit |
+| --- | --- | --- | --- |
+| 1 | Fill for this task | Fill | Planned |
 
 ## Acceptance criteria
 

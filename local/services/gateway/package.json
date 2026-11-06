@@ -1,0 +1,4 @@
+{
+  "name": "@makerspace/gateway", "private": true, "version": "0.0.0", "type": "module",
+  "scripts": { "start": "node index.ts", "test": "vitest run ." }
+}

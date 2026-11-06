@@ -1,0 +1,8 @@
+{
+  "name": "@makerspace/contracts",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": "./index.ts",
+  "dependencies": { "zod": "4.6.7" }
+}

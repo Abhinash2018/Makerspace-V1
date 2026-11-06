@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - services/*
+  - packages/*
+
+engineStrict: true
+packageManagerStrict: true
+packageManagerStrictVersion: true
+managePackageManagerVersions: false
+saveExact: true
+strictPeerDependencies: true
+
+# Native dependency build scripts are reviewed and allowed as they are added.
+# Only the service-owned SQLite driver needs a native build at this checkpoint.
+onlyBuiltDependencies:
+  - better-sqlite3
