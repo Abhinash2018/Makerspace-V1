@@ -105,6 +105,8 @@ Finish each group with focused checks and task evidence; inspect and commit name
 
 Contract checkpoint: `packages/contracts/checkin.ts` adds strict browser/internal request and identity-free confirmation schemas. Three tests pass in the offline-installed verification copy, as do focused lint and full typecheck. Unicode NFC/space normalization, NetID casing/bounds, UUID canonicalization, invalid controls, oversized inputs, malformed keys and forged role/scope fields are covered. No endpoint or visit table is enabled by this group.
 
+Attendance migration checkpoint: version 2 appends `attendance-manual-visits`, a strict visits table with unique attempt digests and a timestamp index, preserving the original migration row/application ID. Known version-1 DBs require explicit migration; fresh setup receives both records transactionally. Unknown ownership, objects, layout/history and future versions are rejected. Runtime directory/junction checks run before directory creation. Owned connections enable a one-second lock timeout and secure-delete; no physical-erasure guarantee is claimed. Three attendance database/API tests, focused lint and full typecheck pass in the verification copy; an additional combined regression run included all five auth tests. No operator DB was opened or migrated.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.
