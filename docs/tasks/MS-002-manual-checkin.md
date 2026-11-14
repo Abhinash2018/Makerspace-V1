@@ -115,6 +115,8 @@ Error contract checkpoint: the v1 error schema/logger messages now include fixed
 
 Maintenance observability checkpoint: shared logging adds the generic allowlisted `maintenance_failed` event at error severity. Its test confirms raw error/path/private fields are dropped, including with error-level logging. Four observability tests, focused lint and full typecheck pass. The helper contains no retention service logic or domain records.
 
+Attendance HTTP/retention checkpoint: authenticated `POST /internal/v1/visits` validates the strict internal schema and returns only committed/replayed receipts or fixed 400/409/503 errors. Public attendance check-in stays absent. Startup and an unref'ed hourly timer sweep expired visits without migrating or creating a missing DB; close removes the timer. Failed cleanup is logged without record details and causes 503 readiness; a successful record transaction performs cleanup and restores readiness. Four attendance API tests pass, including internal-token rejection, missing-DB failure, replay/conflict, extra-field rejection, inclusive startup/hourly sweep, timer closure and held-lock cleanup failure/recovery. Focused lint and full typecheck pass; no operator DB was touched.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.
