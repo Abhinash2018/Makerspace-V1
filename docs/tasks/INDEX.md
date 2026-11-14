@@ -1,11 +1,11 @@
 # Task index
 
-Only **MS-000** is specified for implementation now. Future rows reserve IDs and boundaries; they are not full task specifications and no future feature branches should be created yet.
+**MS-000** has recorded local acceptance evidence. The owner authorized starting **MS-001** on 13 November 2026; its task specification and evidence are linked below. Later rows reserve IDs and boundaries and are not authorization to implement them or create their branches.
 
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |
 | [MS-000](MS-000-foundation.md) | `chore/MS-000-local-foundation` | Local microservice skeleton, kiosk shell, Ollama diagnostics, CI | None |
-| MS-001 | `feat/MS-001-access-controls` | Local staff sign-in, kiosk sessions, CSRF, authorization, rate limits, session store | MS-000 |
+| [MS-001](MS-001-access-controls.md) | `feat/MS-001-access-controls` | Local staff sign-in, kiosk sessions, CSRF, authorization, rate limits, session store | MS-000 |
 | MS-002 | `feat/MS-002-manual-checkin` | Name/NetID visits, validation, self-reported labeling, idempotency, retention | MS-001 |
 | MS-003 | `feat/MS-003-document-ingestion` | Approved local PDFs, page extraction, versioning, local embedding/index pipeline | MS-001 |
 | MS-004 | `feat/MS-004-grounded-answers` | Local Ollama answers with citations, uncertainty behavior, evaluation, cancellation | MS-003 |

@@ -1,0 +1,133 @@
+# MS-001 — Local access controls
+
+| Field | Value |
+| --- | --- |
+| Status | In progress — checkpoint 1 verified and ready for commit approval; HTTP/login/UI pending |
+| Branch | `feat/MS-001-access-controls` |
+| Owner | Abinash Ghimire; Codex implements within the owner's active request |
+| Dependencies | MS-000 local acceptance recorded; local main contains foundation at `7e96e25` |
+| Task path | `docs/tasks/MS-001-access-controls.md` |
+| PR | Not created; publication not authorized |
+| Intended squash commit | `feat(MS-001): protect local staff and kiosk sessions` |
+
+## Problem and outcome
+
+The foundation serves a kiosk shell and system status, but has no browser session or staff authorization. Before adding check-in, document administration, or history, the gateway must distinguish an anonymous kiosk session from a signed-in staff session. A kiosk must begin automatically without staff pairing; opening staff controls must require local sign-in. A forged browser request, expired session, or wrong password must never grant staff access.
+
+## Scope
+
+Implement gateway-owned staff credentials, opaque browser sessions, session rotation/revocation, CSRF checks, bounded request/login limits, and minimal staff sign-in/sign-out UI. Use local assets and Node cryptography only. Verify the service boundary and error behavior using synthetic credentials and temporary fixtures.
+
+No attendance records, photos, face enrollment, document ingestion, answers, LAN access, cloud authentication, public registration, email/password recovery, or deployment. One locally provisioned staff account is sufficient initially; this is not university SSO. Retain the existing internal service-token boundary. Authentication state is not student identity.
+
+## Read before coding
+
+Read [AGENTS.md](../../AGENTS.md), [README](../../README.md), [architecture](../architecture/ARCHITECTURE.md), [setup](../LOCAL_SETUP.md), [Git workflow](../GIT_WORKFLOW.md), [MS-000 evidence](MS-000-foundation.md), and the gateway, HTTP helpers, contracts, UI, configuration and integration fixtures. Read the current task before each implementation checkpoint.
+
+## Baseline and authorization
+
+- Inspected native Windows checkout on 13 November 2026. Local `main` and `chore/MS-000-local-foundation` both point at `7e96e2565d51165eab7fbe5935f07442e8e4628c`. Foundation source is present and MS-000 records successful local acceptance. Remote freshness, CI and independent review have not been verified in this turn; no fetch/pull/rebase/merge was performed.
+- The owner's active request explicitly authorized a new branch and proceeding to the task after MS-000. This supersedes the old MS-000-only scope and prohibition on future branches for MS-001 only. Root instructions and the task index are updated accordingly. Local branch creation succeeded; main and the existing branch were preserved.
+- The initial index already contains 31,185 staged additions, including installed dependencies, `.env`, runtime databases and generated outputs, plus 13 unstaged PDF deletions corresponding to pre-existing moves. These changes are unrelated to this task and must not be committed with it. No environment values or database contents were read. Preserve the index and files; never use a blanket add/commit. Preparing this checkpoint does not authorize cleanup of pre-existing staging.
+- Existing machine Node is 25.8.1; reuse the previously prepared portable Node 24.22.2 and pnpm 10.34.9 under the temporary `ms000-toolchain` directory for checks. Do not alter global PATH, install tools, change Ollama, or download models.
+
+## Design and boundaries
+
+### Ownership and session lifetime
+
+The gateway owns all browser authorization; no auth domain logic belongs in shared packages or the attendance/knowledge services. Its initial session store is bounded process memory. This is a deliberate update to the architecture's proposed persistent session/auth store: credentials will be kept separately under ignored gateway runtime storage, while sessions expire on process restart. This avoids writing bearer credentials to disk and needs no migration or new dependency. Multiple gateway replicas and session persistence are out of scope.
+
+Use independent 32-byte random base64url session and CSRF tokens. Retain only a SHA-256 digest of each session identifier as the lookup key; never log either token. A session contains only its role (`kiosk` or `staff`), CSRF secret, and expiry state. It contains no names, NetIDs, prompts, visit records, or passwords. Read operations return immutable snapshots.
+
+Kiosk idle expiry is 2 minutes with a 30-minute absolute limit; staff idle expiry is 15 minutes with an 8-hour absolute limit. Only an accepted authorized action should refresh idle expiry; status/session polling must not keep a session alive. Use a monotonic in-process clock for elapsed time. Expiry is inclusive at the deadline. Invalid input, expired/revoked tokens, and tokens from another gateway instance fail closed.
+
+Allow at most 128 kiosk and 16 staff sessions, with separate capacity so kiosk churn cannot evict staff. Reclaim expired sessions when creating/rotating sessions; reject overload without evicting active sessions. Rotation issues a new session and CSRF token, invalidates the previous identifier, and retains the old session if replacement fails. The session store does not verify passwords; the later HTTP authentication layer may request a staff rotation only after credential verification.
+
+### Credential and browser work planned for later checkpoints
+
+- Operator-only local provisioning CLI; no default staff password or credential in `.env.example`. Hash passwords with a salted Node scrypt record and verify with constant-time comparison. Persist only the hash/parameters under ignored gateway runtime storage; validate file bounds, ownership/path and supported format. Plan exact scrypt resource limits with measured checks before implementing this checkpoint. Never pass a password on the command line or print it. Missing configuration leaves staff login unavailable while the kiosk/status remains usable.
+- Use a host-only session cookie with `HttpOnly`, `SameSite=Strict`, `Path=/` and bounded lifetime. Initial plain HTTP loopback cannot promise HTTPS cookie security; require `Secure` with trusted HTTPS in MS-009. No session/password in browser localStorage, sessionStorage, URL or logs.
+- Staff login rotates both session and CSRF tokens. Staff logout revokes the staff session and clears transient staff UI; starting the next visitor revokes/replaces kiosk state. Staff privileges never follow an existing kiosk token.
+- Require exact allowlisted Origin plus a session-bound CSRF header on every unsafe browser method, including login/logout and session creation/reset. Bootstrap uses an allowlisted Origin and a non-simple custom header, with no permissive CORS, before a session exists. Keep Host validation and add Fetch Metadata checks. SameSite cookies alone are insufficient.
+- Gateway enforces route roles and builds upstream context from server-owned state. Strip caller-provided internal token/identity/role headers. Do not create arbitrary downstream proxies or protected success stubs for unimplemented features. Internal health/status remains compatible.
+- Bound login attempts before expensive password hashing and bound overall requests, session creation and limiter memory. Use fixed errors and `Retry-After` on 429. Ignore spoofed forwarded client identities on loopback. No automatic retries for login/mutations.
+
+### HTTP contract plan (not enabled by checkpoint 1)
+
+All JSON responses include a request ID and use strict shared technical schemas. Freeze exact payloads in checkpoint 3 before adding routes. Planned paths:
+
+| Method and path | Caller and result |
+| --- | --- |
+| `POST /api/v1/session` | Same-origin bootstrap/reset; creates anonymous kiosk session and returns role, CSRF token and expiry information; never a bearer token in JSON |
+| `GET /api/v1/session` | Current session metadata/CSRF for reload; absent or expired cookie returns 401; does not extend idle expiry |
+| `POST /api/v1/staff/login` | Valid kiosk session + Origin/CSRF + bounded credentials; rotates into staff session after verification |
+| `POST /api/v1/staff/logout` | Valid staff session + Origin/CSRF; revokes session and clears cookie |
+
+Public liveness and existing system-status routes stay usable. Existing unavailable check-in/Ask routes stay unavailable. Unauthorized is 401, disallowed role/CSRF/origin is 403, malformed input is 400, overload is 429 or session-capacity 503. Error messages must not reveal credential existence or values. No HTTP contract changes exist in checkpoint 1.
+
+## Ordered implementation checkpoints
+
+The owner authorized grouped local commits and the private-branch rebase/squash workflow on 13 November 2026, then explicitly requested finishing this task and continuing the backlog in dependency order, with a separate branch for each task. This supersedes per-checkpoint commit questions for that work. Finish and verify each coherent group, review its diff, then commit named paths only. Publication/deployment remain unauthorized. Keep development commits grouped; the final task squash is separate. Checkpoint 1 is split into a three-file specification commit and a session implementation/test/evidence commit.
+
+| Order | Outcome and proposed commit message | Verification before commit | Status |
+| --- | --- | --- | --- |
+| 1 | Gateway session store, specification and active-scope documentation — `feat(MS-001): add bounded gateway session lifecycle` | Session unit tests, existing unit/tooling suites, lint/typecheck, changed-doc link and whitespace checks, preserved index | Passed locally; uncommitted, awaiting owner approval |
+| 2 | Local credential provisioning and verification — `feat(MS-001): provision local staff credentials safely` | Password success/failure, malformed/absent files, safe setup/CLI behavior, resource/concurrency bounds, redaction | Planned |
+| 3 | Versioned auth contracts, cookies, CSRF, roles and limits — `feat(MS-001): enforce browser access controls` | Fastify HTTP tests for fixation/rotation/expiry, Origin/Host/metadata, CSRF, forged context, rate and capacity limits, dependency failure | Planned |
+| 4 | Kiosk lifecycle and staff login/logout UI — `feat(MS-001): connect kiosk and staff sessions` | Accessible UI, reload/expiry/logout and unauthorized behavior; Chromium smoke; no browser-persisted identity | Planned |
+| 5 | Real-process acceptance and runbook — `test(MS-001): verify local access-control boundaries` | Frozen offline install, all lint/type/build/unit/process/browser suites; synthetic credentials; final source/index review | Planned |
+
+### Checkpoint 1 acceptance
+
+- [x] Gateway-owned module issues separate random session/CSRF tokens and exposes immutable snapshots; malformed/unknown tokens fail closed.
+- [x] Both roles expire at their documented idle and absolute deadlines; reads and CSRF verification do not refresh activity.
+- [x] Rotation invalidates the old identifier and CSRF token, revocation/clear take effect immediately, and another store cannot accept the token.
+- [x] Separate 128-kiosk/16-staff limits preserve active sessions on overflow, permit replacement at capacity, and reclaim expired slots.
+- [x] Existing automated unit/tooling checks, lint and typecheck pass with dependencies installed from the frozen lockfile offline; the initial index is preserved.
+
+## Acceptance criteria
+
+- [ ] Kiosk begins without staff pairing; an invalid/expired/revoked cookie cannot authorize a protected action.
+- [ ] Valid provisioned staff credentials grant only the documented staff role; missing/incorrect credentials never do.
+- [ ] Login rotates session and CSRF tokens; the old session cannot be reused. Logout and gateway restart invalidate staff access.
+- [ ] Idle and absolute expiry apply at their deadlines; session/status polling cannot keep an idle session alive.
+- [ ] Unsafe routes reject missing/hostile Origin, wrong/missing CSRF, hostile Fetch Metadata and forged client identity.
+- [ ] Request/login/session limits have bounded memory; rejected traffic cannot evict active staff sessions or trigger unbounded hashing.
+- [ ] Staff credential/token values do not enter Git, logs, responses (except CSRF), URLs, browser storage, or attendance/knowledge databases.
+- [ ] Browser and real-process tests prove staff/kiosk separation, expiry, logout, and fail-closed behavior with synthetic data.
+- [ ] Existing local status, health, service isolation, startup/shutdown, disabled future features and offline assets remain correct.
+- [ ] Runbook, contract schemas, task evidence and relevant automated checks describe the implemented behavior. No remote/device checks are claimed without evidence.
+
+## Verification evidence
+
+| Check | Exact command or procedure | Actual result | Evidence / limitations |
+| --- | --- | --- | --- |
+| Baseline/branch | Inspect status, branches, worktrees, manifests, scripts and task evidence; `git switch -c feat/MS-001-access-controls` | Passed, 13 November 2026 | Created from local main `7e96e25`; sandbox required elevated Git ref access; no commit/push/merge |
+| Initial working-copy checks | `pnpm test`, `pnpm lint`, `pnpm typecheck` using portable Node 24.22.2/pnpm 10.34.9 | 16 tooling tests passed; Vitest/lint/typecheck failed before meaningful full verification | Existing installed dependency tree is incomplete: Vitest cannot resolve `std-env`, ESLint cannot resolve `@humanfs/node`, and typecheck cannot resolve transitive types such as `undici-types`/`playwright/test`. Did not modify installed or staged dependency files, bypass checks, or claim this run passed. |
+| Fresh frozen offline installation | Copy workspace to temporary `ms001-verification-*`, excluding `.env`, `.runtime`, `.tools`, dependencies and generated output; `pnpm install --frozen-lockfile --offline --store-dir <temp>/ms000-toolchain/pnpm-store` | Passed, 13 November 2026 | All 8 workspace projects; 223 packages reused, zero downloaded. Pinned Node 24.22.2/pnpm 10.34.9; lockfile unchanged. No operator config, DB or real credentials copied. |
+| Session and existing unit/tooling suites | In that fresh copy, `pnpm test` | Passed: 44 tests, none skipped | 16 tooling + 28 Vitest tests in 15 files, including 9 new session cases. Malformed input, independent CSRF, exact idle/absolute boundaries, polling, rotation, revocation/restart isolation, capacity and expiry reclamation covered. No HTTP integration claimed. |
+| Static checks | In that same fresh copy, `pnpm lint` and `pnpm typecheck` | Passed | No rule disabled or compiler option relaxed. Session source/tests plus manifest/lockfile hashes match working-copy files. The original installed dependency tree remains unrepaired. |
+| Documentation/diff/index | Read intended source/diff; inline Node file/hash/link/whitespace assertions; `git diff --check -- AGENTS.md docs/tasks/INDEX.md`; compare initial/final index SHA-256 | Passed | Five intentional files have final newlines/no trailing whitespace; 9 local Markdown links resolve. Index unchanged: `29598df98f3e2ffa8bec8f0dc0d4e0559461f3edb643f8b53e890324b7b94f5c`. No staging, commits or publication. |
+| Auth HTTP/process/browser/offline | Checkpoints 2–5 | Not run | No routes, credentials or UI changes in checkpoint 1; no real student data |
+
+## Contributor explanation
+
+A browser will hold an opaque cookie; only the gateway can resolve it to a kiosk or staff session. A separate random CSRF token will accompany browser mutations. The session module supplies expiry, bounded storage, rotation and revocation, but does not prove that a caller knows the staff password. That verification and the browser checks must be implemented together before staff routes are usable.
+
+Restarting the gateway signs everyone out. This is intentional for the first single-process implementation. A full store returns a controlled capacity error rather than removing someone else's active session. Later multi-host operation would need a reviewed persistent store and scoped/encrypted service authentication.
+
+## Rollback and operational impact
+
+Checkpoint 1 adds an unused module and tests; no running route, configuration, database, dependency, lockfile or runtime file changes. It can be removed independently without a data migration. Later credential creation must preserve pre-existing files and have a documented reset procedure. Reverting code cannot reverse future credential provisioning; preserve or remove runtime data only at the operator's direction. No live operator credential is created for acceptance.
+
+## Completion record
+
+- Changed files: `AGENTS.md` aligns active scope with the owner's request; `docs/tasks/INDEX.md` links this task; this file defines scope/contracts/evidence; `local/services/gateway/sessions.ts` and `sessions.test.ts` implement and check the first module.
+- Decisions: process-memory sessions, separate kiosk/staff capacity, digest lookup keys, monotonic expiry, explicit activity refresh, no new runtime dependencies.
+- Limitations: session module is not connected to HTTP; credentials, authorization, request limits, UI and full acceptance remain pending. The working-copy dependency installation is incomplete; verification succeeded in a separate frozen offline-installed copy. Pre-existing unsafe staging is preserved and must be excluded from any approved commit. MS-001 is not complete.
+- Follow-up tasks: MS-002 and MS-003 remain dependent on completed access controls; no implementation is authorized for them.
+- Verified revision/date: base `7e96e25`, local uncommitted MS-001 checkpoint on 13 November 2026. No commit SHA or PR is claimed for this checkpoint.
+
+## Design references
+
+Consulted the primary [OWASP session guidance](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html), [OWASP CSRF guidance](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html), and [Node 24 cryptography reference](https://nodejs.org/docs/latest-v24.x/api/crypto.html) on 13 November 2026 for randomness, rotation, expiration, cookie and CSRF design. These explain security mechanisms, not evidence that the pending HTTP implementation is secure.
