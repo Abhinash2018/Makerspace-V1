@@ -3,7 +3,8 @@ import { errorSchema, sessionResponseSchema, signedOutSchema } from '../../../pa
 import type { BrowserSession } from '../../../packages/contracts/index.ts';
 
 class AccessError extends Error {
-  constructor(readonly code: string) { super('Access request failed.'); }
+  readonly code: string;
+  constructor(code: string) { super('Access request failed.'); this.code = code; }
 }
 const messages: Record<string, string> = {
   unauthorized: 'Sign-in failed or the session expired. Please try again.',
