@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { systemStatusSchema } from '../../../packages/contracts/index.ts';
 import type { SystemStatus } from '../../../packages/contracts/index.ts';
+import { StaffAccess, useAccess } from './access.tsx';
 import './style.css';
 
 const labels = { gateway: 'Kiosk gateway', attendance: 'Attendance service', knowledge: 'Knowledge service', ollama: 'Local AI model' };
@@ -11,10 +12,12 @@ const explanations: Record<string, string> = {
   ui_missing: 'Kiosk build missing', db_unavailable: 'Database unavailable', migrations_required: 'Migration required',
 };
 function App() {
+  const access = useAccess();
   const [begun, setBegun] = useState(false);
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [offline, setOffline] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { if (!access.session) setBegun(false); }, [access.session]);
   useEffect(() => {
     if (begun) heading.current?.focus();
   }, [begun]);
@@ -42,11 +45,11 @@ function App() {
         <h1 id="welcome-title">Ideas start<br />with <em>you.</em></h1>
         <p className="intro">Welcome to Ingram Makerspace. Get ready to learn, build, and bring something new to life.</p>
         <p className="assistant-name">Ingram Makerspace Assistant</p>
-        {!begun ? <button className="begin" onClick={() => setBegun(true)}>Begin <span aria-hidden="true">↗</span></button> : <section className="choices" aria-labelledby="choices-title">
+        {!begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) setBegun(true); }}>Begin <span aria-hidden="true">↗</span></button> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
           <div className="actions"><button disabled>Check in<span>Coming soon</span></button><button disabled>Ask a question<span>Coming soon</span></button></div>
           <p>We’re setting things up. For help today, please speak with Makerspace staff.</p>
-          <button className="back" onClick={() => setBegun(false)}>Back to welcome</button>
+          <button className="back" disabled={access.busy} onClick={async () => { if (await access.begin()) setBegun(false); }}>Back to welcome</button>
         </section>}
       </section>
       <aside aria-labelledby="status-title">
@@ -58,6 +61,7 @@ function App() {
           return <li key={key}><span className={`dot ${item?.ready ? 'ready' : ''}`} aria-hidden="true" /><div><strong>{label}</strong><span>{offline ? 'Unknown — gateway offline' : !item ? 'Checking…' : explanations[item.code] ?? 'Needs attention'}</span></div></li>;
         })}</ul>
         <p className="note">Check-in and questions are upcoming features. This preview does not collect visitor information.</p>
+        <StaffAccess access={access} />
       </aside>
     </div>
     <footer><span>MAKE SOMETHING THAT MATTERS.</span><span>Camera & microphone off</span></footer>
