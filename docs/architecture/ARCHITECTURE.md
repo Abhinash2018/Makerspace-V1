@@ -4,6 +4,8 @@ Status: MS-000 foundation is implemented and locally verified on Windows, includ
 
 MS-001 adds locally verified gateway browser access controls: kiosk/staff sessions, private credential provisioning, CSRF/Origin/role checks and bounded login/API work. See [MS-001](../tasks/MS-001-access-controls.md) for contracts and evidence. No attendance or document feature is enabled by access controls alone.
 
+MS-002 now adds locally verified manual check-in, transactional retry handling and retention in attendance. The kiosk works without knowledge/Ollama and never claims a visit was saved before storage confirms it. See [MS-002](../tasks/MS-002-manual-checkin.md). Document answers, staff history, photos and LAN rollout remain separate tasks.
+
 ## Decision and tradeoff
 
 Use a monorepo with independently runnable local services. A monorepo is one Git repository containing multiple applications; it does not mean one backend process. Each service owns its APIs, database, migrations, and tests. All services initially run on one PC.
@@ -29,7 +31,7 @@ flowchart TD
     end
 ```
 
-In MS-000 the service databases contain migration metadata only. Knowledge checks local model availability; a CLI can explicitly run a harmless generation probe. No visitor question endpoint, identity, or student storage is enabled yet.
+MS-000 created metadata-only service databases and explicit Ollama diagnostics. MS-001 added gateway-owned access controls; MS-002 extends attendance with self-reported visits, while knowledge remains metadata-only until ingestion. There is still no visitor question endpoint. A developer CLI can explicitly run a harmless generation probe.
 
 ## Service ownership
 
@@ -37,7 +39,7 @@ In MS-000 the service databases contain migration metadata only. Knowledge check
 | --- | --- | --- | --- |
 | Kiosk | Accessible shell and system status | Check-in and Ask screens; consent and captions | Transient UI state only; no persistent identity on kiosk |
 | Gateway | Same-origin UI/API, status, kiosk/staff sessions, CSRF, authorization and limits | Authorized feature routing | Private staff hash file and bounded process-memory sessions |
-| Attendance | Health/readiness and migration skeleton | Visits, idempotency, retention, staff history, consented visit photos | Attendance DB and private photo directory |
+| Attendance | Health/readiness, self-reported visits, idempotency and retention | Staff history and consented visit photos | Attendance DB; private photo directory added later |
 | Knowledge | Health/readiness, Ollama adapter and diagnostics | Approved document ingestion, retrieval, answer orchestration and citations | Knowledge DB, document files and derived index |
 | Ollama | Local inference runtime | Chat generation and local text embeddings | Downloaded model files; no authoritative attendance data |
 | Face service, later | Not scaffolded or running now | Opt-in enrollment, template matching, expiry/revocation | Separate encrypted template store |
@@ -87,6 +89,14 @@ Sessions are deliberately bounded process memory rather than the originally prop
 
 Browser v1 routes are `POST/GET /api/v1/session` and `POST /api/v1/staff/login` / `logout`. The cookie is host-only, HttpOnly, SameSite=Strict and Path=/; Secure requires MS-009 HTTPS. Mutations need an exact allowed Origin and session CSRF header; initial bootstrap additionally needs a custom non-simple header. Fetch Metadata rejects cross-site/same-site API requests. Every future protected route must call the gateway's role/CSRF guard. No arbitrary upstream proxy or fake staff feature is exposed. Schemas contain request IDs and bounded role/CSRF/expiry metadata only; the bearer token is cookie-only. See the [operator runbook](../LOCAL_SETUP.md#local-staff-access-ms-001) for policies, shared rate limits and local-account/Windows ACL limits.
 
+### Manual attendance contract (MS-002)
+
+Kiosk-role `POST /api/v1/checkin` requires Origin/CSRF and a strict name/NetID/UUID body. The gateway supplies the opaque session namespace and its own internal token/request ID to `POST /internal/v1/visits`. It never imports SQLite or attendance repositories. Attendance validates, applies retention and inserts/replays in an immediate transaction. A unique attempt digest prevents duplicates; changed normalized details under that key conflict. Confirmation contains only an opaque visit ID, server UTC time and fixed self-reported/replayed flags. Model or knowledge failure cannot gate this path.
+
+Migration 2 appends a strict visits table and timestamp index after the known foundation migration. Startup never migrates or replaces a missing DB. Attendance deletes rows at/before the 30-day project cutoff at startup, hourly, before writes and through the explicit cleanup CLI. Failed maintenance reports a fixed redacted event and unavailable readiness. Later history/photo reads must enforce expiry independently of cleanup. Secure-delete is enabled on owned connections; logical deletion does not guarantee erasure from WAL/SSDs/backups. No institution-approved retention policy is implied.
+
+Gateway bounds check-in to ten attempts/minute, fixed loopback paths, two seconds and 4096 response bytes, validating status/body/request ID with no automatic retries. The browser keeps an uncertain attempt only in component memory and explicitly retries its same UUID; a new session/reset clears identity/attempt state. The same request may commit despite a lost reply, so failure feedback says confirmation is uncertain. API/network failure never creates a persistent browser queue or fake success.
+
 ### Bootstrap configuration contract (MS-000 group 2b)
 
 `local/packages/config/` is a Node-only technical helper with no domain services or database models. Its pure parser validates common environment settings; its explicit loader reads workspace `.env` and applies known process environment overrides without mutating `process.env`. Each service entrypoint explicitly validates this bootstrap schema before binding; service-specific domain configuration will belong to the owning service when introduced.
@@ -98,7 +108,7 @@ The implemented request path is browser to gateway, gateway to authenticated att
 ## Local data strategy
 
 - One SQLite database file per owning service, accessed through a repository interface. Each service has versioned, append-only migrations and parameterized queries.
-- Attendance later stores UTC timestamps; display them in `America/Chicago`. Identity supplied by a visitor is labeled self-reported, not university verified.
+- Attendance stores UTC timestamps; display them in `America/Chicago`. Identity supplied by a visitor is labeled self-reported, not university verified.
 - Photos/documents live in separate private service directories, never a public web folder. Owners enforce authorization and retention on reads as well as cleanup.
 - Knowledge stores document hash/version, page/chunk metadata, embedding model ID/digest, dimensions, and index version. Changing embedding model requires a new index; never mix incompatible vectors.
 - For a small approved document collection, begin with a simple local index behind an interface. Select its implementation in the retrieval task based on measured corpus size. Do not add a hosted vector database or a second search service now.
@@ -129,10 +139,10 @@ Do not send names, NetIDs, photos, or face templates into prompts. Do not persis
 
 | Condition | Required behavior |
 | --- | --- |
-| Ollama stopped or model missing | Knowledge reports degraded AI; attendance remains usable once implemented; no cloud fallback |
+| Ollama stopped or model missing | Knowledge reports degraded AI; manual attendance remains usable; no cloud fallback |
 | Knowledge service down | Gateway keeps serving UI; Ask is unavailable; attendance remains isolated |
 | Attendance DB unavailable | Do not show successful check-in or silently queue personal data in browser storage |
-| Duplicate/retried check-in, later | Transaction plus idempotency key prevents duplicate visit creation |
+| Duplicate/retried check-in | Transaction plus session-scoped idempotency key prevents duplicate visit creation |
 | AI overload, later | Bound concurrent generations and queue length; return explicit busy/retry status |
 | Client disconnect | Cancel upstream inference where supported; enforce timeout regardless |
 | Host power loss | All services stop; restart and data recovery are operations responsibilities |

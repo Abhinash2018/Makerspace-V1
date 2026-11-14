@@ -78,6 +78,18 @@ Browser access uses a host-only HttpOnly/SameSite=Strict cookie, a separate in-m
 
 All loopback callers share fixed limits: 240 API requests, 20 session creations/resets and 5 login attempts per minute. The response includes Retry-After when limited. Password verification allows one 128 MiB scrypt operation at a time, with a 192 MiB maximum allocation setting; a concurrent attempt receives a retry response. A local client can exhaust shared limits; they are bounds on work, not protection from a compromised local account. Staff credentials and request bodies never enter logs or Ollama prompts.
 
+## Manual check-in and visit retention (MS-002)
+
+Before running new check-in code over the foundation, stop the app, preserve any existing data with a SQLite-safe backup, and run `pnpm db:migrate` explicitly. Attendance appends migration 2 to the known migration-1 database; it never deletes/recreates that database or migrates on startup. Unknown/future/foreign layouts fail closed. This implementation's development tests do not migrate the operator's real DB.
+
+Begin a visitor session, select Check in, enter the name and NetID, and submit. Names are bounded Unicode self-reports; NetIDs are trimmed/lowercase ASCII letters/digits beginning with a letter, 2–32 characters. These are project input bounds, not university account verification. The confirmation is shown only after the attendance transaction commits and contains no submitted identity. Check-in does not authorize equipment use, unlock a door, measure occupancy, take a photograph or send identity to Ollama. Knowledge/model availability does not gate attendance.
+
+If confirmation is lost or a dependency is unavailable, the UI locks the attempt's details and offers Retry same check-in. That explicit retry reuses its UUID and returns the original receipt if it already committed. There is no automatic retry or browser queue. Starting a new attempt is explicit and may record a second visit if an earlier request succeeded. Finish/back/session expiry clear visitor fields and attempt state; a new session has a fresh attempt namespace. Ten authenticated check-in attempts/minute share a gateway-wide limit within the existing API quota.
+
+Visits and their attempt/payload digests use the existing project default of 30 days. This is not an institutional retention-policy approval. Attendance removes rows at or before the UTC cutoff at startup, hourly while running and before new writes. `pnpm attendance:cleanup` performs the same cleanup explicitly, with no arguments, and prints only the count. A cleanup failure is a fixed redacted maintenance event and makes readiness unavailable until a later successful sweep/write or restart. A stopped service cannot run cleanup; run the explicit command or restart after downtime. MS-005 must also filter expiry on reads; MS-010 owns operational scheduling/backup retention.
+
+Row deletion is logical retention, not guaranteed erasure from SSDs, WAL files, backups or external copies. Owned SQLite connections enable secure-delete; backups and copies require their own lifecycle. Cleanup is an indexed transaction with a one-second lock wait; its execution time depends on expired row count. No production load target or physical-erasure guarantee is claimed. Do not revert to migration-1-only code over a version-2 DB or delete the DB to make readiness green. Rollback requires a reviewed migration/data plan and a SQLite-safe backup.
+
 ## Offline verification
 
 1. Complete dependency/model installation and production build while setup access is available.

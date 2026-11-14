@@ -7,13 +7,15 @@ import type { Configuration } from '../../packages/contracts/index.ts';
 import { makeServer, serve } from '../../packages/http/server.ts';
 import { createStatus } from './status.ts';
 import { registerAuth } from './auth.ts';
+import { registerCheckin } from './checkin.ts';
 
 const dist = fileURLToPath(new URL('../../apps/kiosk/dist/', import.meta.url));
 export function createGateway(config: Configuration, options: { assetDir?: string; dev?: boolean } = {}) {
   const origin = `http://127.0.0.1:${config.ports.gateway}`;
   const origins = [origin, ...(options.dev ? ['http://127.0.0.1:5173'] : [])];
   const app = makeServer({ service: 'gateway', port: config.ports.gateway, origins, logLevel: config.logLevel });
-  registerAuth(app, { directory: path.join(config.runtime.root, 'gateway'), origins });
+  const auth = registerAuth(app, { directory: path.join(config.runtime.root, 'gateway'), origins });
+  registerCheckin(app, config, auth);
   // Only build-owned files are registered as routes. No arbitrary path lookup.
   const assets = new Map<string, { body: Buffer; type: string }>();
   const directory = options.assetDir ?? dist;
