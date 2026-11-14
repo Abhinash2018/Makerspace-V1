@@ -113,6 +113,8 @@ Visit repository checkpoint: `visits.ts` owns parameterized immediate transactio
 
 Error contract checkpoint: the v1 error schema/logger messages now include fixed `idempotency_conflict` and `attendance_unavailable` codes. The unavailable message explicitly says confirmation is uncertain and suggests retrying the same attempt; it does not claim a write failed. Ten contract/observability tests and focused lint pass. No submitted name, NetID, key or database error is reflected in either message.
 
+Maintenance observability checkpoint: shared logging adds the generic allowlisted `maintenance_failed` event at error severity. Its test confirms raw error/path/private fields are dropped, including with error-level logging. Four observability tests, focused lint and full typecheck pass. The helper contains no retention service logic or domain records.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.

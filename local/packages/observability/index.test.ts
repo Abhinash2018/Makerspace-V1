@@ -24,4 +24,10 @@ describe('request IDs and allowlisted logs', () => {
   it('emits schema-valid fixed errors without reflected messages or stacks', () => {
     expect(errorSchema.parse(errorBody('not_found', requestId(undefined))).error.message).toBe('Route not found.');
   });
+  it('reports maintenance failure at error level with no private failure details', () => {
+    const lines: string[] = [];
+    logEvent('maintenance_failed', { service: 'attendance', error: 'synthetic-private-record', path: 'private-db' }, 'error', line => { lines.push(line); });
+    expect(JSON.parse(lines[0]!)).toMatchObject({ level: 'error', event: 'maintenance_failed', service: 'attendance' });
+    expect(lines.join('')).not.toContain('private');
+  });
 });
