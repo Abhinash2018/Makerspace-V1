@@ -128,6 +128,8 @@ Kiosk/staff UI checkpoint: `access.tsx` keeps only role/CSRF/expiry metadata in 
 
 Staff form styling checkpoint: added local CSS for password inputs, focus rings, busy controls, feedback and spacing, using the existing kiosk palette. The built Chromium flows pass at desktop 1280×900 and mobile 390×844; full-page staff screenshots were visually inspected, with readable fields/feedback and no clipping or horizontal overflow. This changes no API, dependency or data behavior.
 
+Real-process boundary checkpoint: `tests/integration/access.test.ts` provisions only a synthetic credential in a temporary fixture, logs in through the running gateway, proves the old kiosk cookie and wrong CSRF fail, proves staff cookies/forged roles cannot authenticate directly to attendance/knowledge, restarts all owned processes and confirms the staff session is invalid. Both service-owned metadata DB files remain byte-identical. The complete integration suite passes 4 tests in 3 files (31.34 seconds), including existing dev proxy, IPC shutdown, service failure/recovery and occupied-port behavior. The intentionally denied Vite `.env` access reports its synthetic temp path; no config content is served. Existing color-environment warnings remain visible.
+
 ## Contributor explanation
 
 A browser will hold an opaque cookie; only the gateway can resolve it to a kiosk or staff session. A separate random CSRF token will accompany browser mutations. The session module supplies expiry, bounded storage, rotation and revocation, but does not prove that a caller knows the staff password. That verification and the browser checks must be implemented together before staff routes are usable.
