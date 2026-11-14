@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — specification checkpoint |
+| Status | Local implementation and acceptance complete; final Git handoff in progress, remote CI/Linux unrun |
 | Branch | `feat/MS-002-manual-checkin` |
 | Owner | Abinash Ghimire; Codex implements within the active request |
 | Dependencies | MS-001 locally accepted and squash-merged as `c616a00` |
@@ -75,33 +75,36 @@ Finish each group with focused checks and task evidence; inspect and commit name
 | --- | --- | --- | --- |
 | 1 | `docs(MS-002): define manual check-in contracts and scope` | Links/whitespace, baseline and dependency refs | Committed as `45db271`; 9 local links and whitespace checks pass |
 | 2 | `feat(MS-002): validate manual check-in payloads` | Strict schemas, normalization, bounds, error contracts | Request/response schema tests, focused lint and full typecheck pass; transport errors follow with HTTP wiring |
-| 3 | `feat(MS-002): migrate owned attendance visit storage` | Version-1 upgrade, rerun, unknown-owner refusal, rollback/preservation | Planned |
-| 4 | `feat(MS-002): record transactional idempotent visits` | Duplicate/concurrent keys, payload conflict, retention boundary, locks/missing DB, synthetic SQL inputs | Planned |
-| 5 | `feat(MS-002): expose authenticated internal visit writes` | Internal auth, invalid bodies, persistence success/failure, cleanup lifecycle | Planned |
-| 6 | `feat(MS-002): forward guarded bounded check-ins` | Role/CSRF/spoofing, fixed scope/URL, bounded backend statuses/body/time, no retries | Planned |
-| 7 | `feat(MS-002): connect manual check-in kiosk form` | Focus/validation, uncertain retry, reset/expiry clearing, disabled duplicate submit, no browser storage | Planned |
-| 8 | `test(MS-002): verify local check-in and retention` | Unit/lint/build/process/browser, no-AI operation, offline browser, cleanup CLI, runbook and source/index audit | Planned |
+| 3 | `feat(MS-002): migrate owned attendance visit storage` | Version-1 upgrade, rerun, unknown-owner refusal, rollback/preservation | `30a3732`; passed |
+| 4 | `feat(MS-002): record transactional idempotent visits` | Duplicate/concurrent keys, payload conflict, retention boundary, locks/missing DB | `ffb0bcb`; native syntax constraint `88d5c57`; passed |
+| 5 | Authenticated internal visit writes, maintenance and CLI, split groups | Internal auth, invalid bodies, persistence success/failure, cleanup lifecycle | `385a1fb`, `a4ef0d7`, `a9538cf`; passed |
+| 6 | Bounded HTTP and guarded gateway forwarding, split groups | Role/CSRF/spoofing, fixed scope/URL, bounded backend statuses/body/time, no retries | `af717e2`, `dca4738`, `7fa844a`; passed |
+| 7 | Kiosk form, browser flows and separate styling | Focus/validation, uncertain retry, reset/expiry clearing, disabled duplicate submit, no browser storage | `b546bcc`, `730406a`; passed |
+| 8 | Process checks, command/runbook and final acceptance, split groups | Unit/lint/build/process/browser, no-AI operation, offline browser, cleanup CLI, runbook and source/index audit | `77cbedb`, `5c43053`; final evidence below |
 
 ## Acceptance criteria
 
-- [ ] A valid kiosk submission commits exactly one self-reported visit with a server UTC timestamp and fixed success contract.
-- [ ] Same-key/same-session retries return the same visit; changed payload conflicts and concurrent duplicate attempts produce one row.
-- [ ] Invalid/oversized/control-bearing input and forged scope/role/internal headers cannot write a visit.
-- [ ] Missing/expired session, wrong role/CSRF/Origin, full limits, DB locks, failed DB/migration and backend timeout all fail without a false success.
-- [ ] Missing knowledge/Ollama cannot prevent attendance recording; attendance/storage failure cannot silently queue personal data.
-- [ ] Version-1 migration preserves existing metadata and rejects unknown schemas; rerunning migration is safe.
-- [ ] Thirty-day cutoff is inclusive, deletes expired visits/idempotency identity and preserves newer visits; cleanup failure is observable.
-- [ ] UI clears personal/attempt/success state on reset/expiry, supports explicit same-attempt retry and writes no persistent browser identity.
-- [ ] Existing auth/status/lifecycle behavior remains correct; Ask remains unavailable and camera/microphone unused.
-- [ ] Relevant automated checks, runbook, contracts and Git audit pass with synthetic fixtures; unrun platform/rollout gates are reported separately.
+- [x] A valid kiosk submission commits exactly one self-reported visit with a server UTC timestamp and fixed success contract.
+- [x] Same-key/same-session retries return the same visit; changed payload conflicts and concurrent duplicate attempts produce one row.
+- [x] Invalid/oversized/control-bearing input and forged scope/role/internal headers cannot write a visit.
+- [x] Missing/expired session, wrong role/CSRF/Origin, full limits, DB locks, failed DB/migration and backend timeout all fail without a false success.
+- [x] Missing knowledge/Ollama cannot prevent attendance recording; attendance/storage failure cannot silently queue personal data.
+- [x] Version-1 migration preserves existing metadata and rejects unknown schemas; rerunning migration is safe.
+- [x] Thirty-day cutoff is inclusive, deletes expired visits/idempotency identity and preserves newer visits; cleanup failure is observable.
+- [x] UI clears personal/attempt/success state on reset/expiry, supports explicit same-attempt retry and writes no persistent browser identity.
+- [x] Existing auth/status/lifecycle behavior remains correct; Ask remains unavailable and camera/microphone unused.
+- [x] Final source/Git/docs audit recorded below; all relevant automated checks/runbook are complete, with unrun platform/rollout gates stated separately.
 
 ## Verification evidence
 
 | Check | Exact command/procedure | Result | Limits |
 | --- | --- | --- | --- |
 | Baseline/branch | Inspect source/status/manifests/scripts, `git switch -c feat/MS-002-manual-checkin main` | Passed, 13 November 2026 | Local base `c616a00`; unrelated staging preserved; no push |
-| New unit/process/browser checks | To fill per group | Not run | No MS-002 runtime behavior implemented yet |
-| Offline / platform | To fill during acceptance | Not run | Earlier MS-001 results are historical; no real student data or device rollout |
+| Unit/tooling | `pnpm test` in the offline-installed verification copy | Passed: 16 tooling + 56 Vitest tests in 23 files | No skips; includes native worker concurrency and CLI subprocess checks |
+| Static/build | `pnpm lint`, `pnpm typecheck`, `pnpm build` | Passed | Strengthened erasable-syntax constraint; no dependency/lockfile change |
+| Process | `pnpm test:integration` | Passed: 5 tests in 4 files, 37.03 seconds | Real separate processes, no-AI recording, concurrency, restart/auth and dependency loss |
+| Browser/offline assets | `pnpm test:e2e` | Passed: 3 flows, 34.6 seconds | Chromium desktop/mobile, external requests blocked (zero attempts), screenshots visually reviewed; simulated browser expiry plus exact server-clock tests |
+| Platform/rollout | Native Windows / operator environment | No operator rollout performed | Remote CI/Linux, Safari and production load/backup erasure unrun; operator DB/dependencies/runtime untouched |
 
 Contract checkpoint: `packages/contracts/checkin.ts` adds strict browser/internal request and identity-free confirmation schemas. Three tests pass in the offline-installed verification copy, as do focused lint and full typecheck. Unicode NFC/space normalization, NetID casing/bounds, UUID canonicalization, invalid controls, oversized inputs, malformed keys and forged role/scope fields are covered. No endpoint or visit table is enabled by this group.
 
@@ -143,12 +146,25 @@ Version 2 is append-only. Rolling back application code does not remove a migrat
 
 ## Completion record
 
-- Changed files: specification/scope/index only at checkpoint 1; fill runtime paths and evidence as groups land.
+- Changed files: shared check-in schemas/fixed errors and bounded HTTP result helper; attendance migration/repository/internal API/retention CLI; gateway guarded forwarding; transient kiosk form/styles; unit/process/browser checks; task/architecture/runbooks. Shared packages contain no domain services or database models.
 - Decisions: gateway role/CSRF boundary, attendance-owned transactions, session-scoped idempotency, self-reported identity, 30-day project default, no AI dependency.
-- Limits: no MS-002 tests or runtime features yet; operator data/DBs/dependencies remain untouched.
+- Limits: operator data/DBs/dependencies remain untouched; runtime upgrade needs explicit migration. Verification uses the separate offline-installed copy because the original dependency tree is incomplete. Logical retention does not guarantee physical/backup erasure; Windows ACLs remain inherited, rate limits are shared, remote CI/Linux/Safari and production load are unrun. No push/deployment/institutional policy approval is claimed.
 - Next tasks: MS-003 document ingestion, followed by dependency-ordered backlog; no feature is claimed complete from a UI mock.
 - Revision/date: local base `c616a00`, 13 November 2026.
 
 Dependency completion record: MS-001's permanent task file now records its actual local main squash `c616a00`, retained 14-commit development branch, exact squash-tree audit and already-current rebase. This documentation correction records completed Git work; it does not add runtime behavior or claim remote publication.
+
+## Final local acceptance — 13 November 2026
+
+- Portable Node 24.22.2 / pnpm 10.34.9; no dependency or lockfile changes. Reused the frozen offline-installed verification copy (223 cached packages, zero downloads at its installation), copying source only and preserving operator config/data/dependencies.
+- `pnpm test`: 16 tooling + 56 Vitest tests in 23 files pass, none skipped. Four native Node workers independently contend on SQLite and produce one visit; code also passes the stronger erasable-syntax check.
+- Full `pnpm lint`, `pnpm typecheck` and typechecked production `pnpm build` pass. Final lint/typecheck include the strengthened browser replay assertion.
+- `pnpm test:integration`: 5 tests in 4 files pass (37.03 seconds), including real no-knowledge check-in, concurrent replay, service loss, auth/restart, development boundary and owned shutdown.
+- `pnpm test:e2e`: 3 Chromium flows pass (34.6 seconds). A real committed response was deliberately dropped, then the same key returned the same receipt with `replayed:true` and exactly one DB row. External browser requests were blocked with zero attempts. Desktop 1280×900/mobile 390×844 screenshots were visually inspected; no clipping/overflow. Browser expiry is simulated; exact server deadlines remain clock-driven tests.
+- Actual `pnpm attendance:cleanup` removed one expired synthetic fixture visit and exited 0; no operator migration or cleanup occurred.
+- Source/Git audit: all 29 runtime/test/config paths changed by this task match the tested copy. At the audit checkpoint 40 local Markdown links and 6 anchors resolve; source/doc whitespace checks pass. No runtime/config/dependency/build/tool output enters task commits. The original unrelated staged-entry digest is preserved, and local main remained `c616a00` before handoff. The audit initially compared an abbreviated base with a full SHA; corrected the audit to resolve the inspected ref before comparison.
+- No cloud runtime, new package/model/global install, operator/student data copy, push or deployment introduced. Remote CI/Linux, Safari, production load/backup erasure and institutional retention approval are unrun/outside this acceptance. The original working dependency tree remains incomplete; the separate verified copy is the source of passing results.
+
+Final local rebase/squash follows after the documentation groups. Preserve all development commits on the task branch; main receives one task commit. Record its actual SHA when the next task begins rather than fabricating a future value here.
 
 Design references consulted: official [SQLite transactions](https://www.sqlite.org/lang_transaction.html), [table constraints](https://www.sqlite.org/lang_createtable.html), and [secure-delete pragma](https://www.sqlite.org/pragma.html#pragma_secure_delete). These guide implementation, not evidence of secure physical erasure or institutional policy approval.
