@@ -123,4 +123,6 @@ Version 2 is append-only. Rolling back application code does not remove a migrat
 - Next tasks: MS-003 document ingestion, followed by dependency-ordered backlog; no feature is claimed complete from a UI mock.
 - Revision/date: local base `c616a00`, 13 November 2026.
 
+Dependency completion record: MS-001's permanent task file now records its actual local main squash `c616a00`, retained 14-commit development branch, exact squash-tree audit and already-current rebase. This documentation correction records completed Git work; it does not add runtime behavior or claim remote publication.
+
 Design references consulted: official [SQLite transactions](https://www.sqlite.org/lang_transaction.html), [table constraints](https://www.sqlite.org/lang_createtable.html), and [secure-delete pragma](https://www.sqlite.org/pragma.html#pragma_secure_delete). These guide implementation, not evidence of secure physical erasure or institutional policy approval.

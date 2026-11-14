@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Local implementation and acceptance complete; final Git handoff in progress, remote CI/Linux unrun |
+| Status | Done locally — squash `c616a00` on local main; remote CI/Linux unrun |
 | Branch | `feat/MS-001-access-controls` |
 | Owner | Abinash Ghimire; Codex implements within the owner's active request |
 | Dependencies | MS-000 local acceptance recorded; local main contains foundation at `7e96e25` |
@@ -146,6 +146,8 @@ Real-process boundary checkpoint: `tests/integration/access.test.ts` provisions 
 The owner requested grouped commits and the final local rebase/squash workflow, followed by the remaining tasks in dependency order. Keep this task's grouped branch history. The final task squash belongs on local main after all groups are committed; no push, remote PR or remote merge is claimed. Record resulting commits through Git rather than inventing a future merge SHA in this document.
 
 Workspace guide handoff: `local/README.md` now documents the staff provisioning entry point, session behavior, gateway ownership, 61-test inventory and the existing dependency-installation limitation. This documentation-only group changes no verified runtime behavior.
+
+Dependency handoff recorded when MS-002 began: final rebase in the isolated clean worktree at `bc54548` was already current with local main; its tree did not change. Local main squash `c616a00` contains exactly 30 reviewed task paths, with an index tree equal to the verified feature tip and no runtime/config/dependency/build artifacts. All 14 development commits remain on `feat/MS-001-access-controls`. No push or remote merge occurred. MS-002 started from that local squash; unrelated staged files remained preserved.
 
 ## Contributor explanation
 
