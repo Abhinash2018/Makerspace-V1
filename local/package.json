@@ -14,6 +14,7 @@
     "check:toolchain": "node scripts/check-toolchain.mjs",
     "setup:local": "node scripts/setup-local.mjs",
     "config:check": "node scripts/check-config.mjs",
+    "staff:provision": "node services/gateway/provision-staff.ts",
     "test:tooling": "node --test tests/tooling/*.test.mjs",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --project tsconfig.json",
