@@ -145,6 +145,8 @@ Real-process boundary checkpoint: `tests/integration/access.test.ts` provisions 
 
 The owner requested grouped commits and the final local rebase/squash workflow, followed by the remaining tasks in dependency order. Keep this task's grouped branch history. The final task squash belongs on local main after all groups are committed; no push, remote PR or remote merge is claimed. Record resulting commits through Git rather than inventing a future merge SHA in this document.
 
+Workspace guide handoff: `local/README.md` now documents the staff provisioning entry point, session behavior, gateway ownership, 61-test inventory and the existing dependency-installation limitation. This documentation-only group changes no verified runtime behavior.
+
 ## Contributor explanation
 
 A browser will hold an opaque cookie; only the gateway can resolve it to a kiosk or staff session. A separate random CSRF token will accompany browser mutations. The session module supplies expiry, bounded storage, rotation and revocation, but does not prove that a caller knows the staff password. That verification and the browser checks must be implemented together before staff routes are usable.
