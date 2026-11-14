@@ -2,10 +2,11 @@ export class HttpFailure extends Error {
   code: 'timeout' | 'cancelled' | 'redirect_rejected' | 'response_too_large' | 'invalid_response' | 'http_error' | 'runtime_unavailable';
   constructor(code: HttpFailure['code']) { super(code); this.code = code; }
 }
-export async function boundedJson(url: string, options: {
+export type BoundedOptions = {
   timeoutMs?: number; maxBytes?: number; signal?: AbortSignal; headers?: Record<string, string>;
   method?: 'GET' | 'POST'; body?: string;
-} = {}): Promise<unknown> {
+};
+export async function boundedResponse(url: string, options: BoundedOptions & { acceptStatuses?: readonly number[] } = {}): Promise<{ statusCode: number; body: unknown }> {
   // Internal callers construct fixed paths from validated configuration only.
   const destination = new URL(url);
   if (destination.protocol !== 'http:' || destination.hostname !== '127.0.0.1' || destination.username || destination.password) throw new HttpFailure('runtime_unavailable');
@@ -18,7 +19,7 @@ export async function boundedJson(url: string, options: {
       ...(options.body === undefined ? {} : { body: options.body }),
     });
     if (response.status >= 300 && response.status < 400) { await response.body?.cancel(); throw new HttpFailure('redirect_rejected'); }
-    if (!response.ok) { await response.body?.cancel(); throw new HttpFailure('http_error'); }
+    if (!response.ok && !options.acceptStatuses?.includes(response.status)) { await response.body?.cancel(); throw new HttpFailure('http_error'); }
     if (!response.headers.get('content-type')?.toLowerCase().startsWith('application/json')) { await response.body?.cancel(); throw new HttpFailure('invalid_response'); }
     const length = Number(response.headers.get('content-length'));
     if (length > limit) { await response.body?.cancel(); throw new HttpFailure('response_too_large'); }
@@ -35,7 +36,7 @@ export async function boundedJson(url: string, options: {
         parts.push(value);
       }
     } finally { reader.releaseLock(); }
-    try { return JSON.parse(Buffer.concat(parts).toString('utf8')); }
+    try { return { statusCode: response.status, body: JSON.parse(Buffer.concat(parts).toString('utf8')) }; }
     catch { throw new HttpFailure('invalid_response'); }
   } catch (error) {
     if (options.signal?.aborted) throw new HttpFailure('cancelled');
@@ -43,4 +44,7 @@ export async function boundedJson(url: string, options: {
     if (error instanceof HttpFailure) throw error;
     throw new HttpFailure('runtime_unavailable');
   }
+}
+export async function boundedJson(url: string, options: BoundedOptions = {}): Promise<unknown> {
+  return (await boundedResponse(url, options)).body;
 }
