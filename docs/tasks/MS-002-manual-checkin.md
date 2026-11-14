@@ -131,6 +131,8 @@ Form style checkpoint: local CSS adds full-width touch-sized fields, readonly/bu
 
 Real-process check-in checkpoint: `tests/integration/checkin.test.ts` starts independent fixture services, stops knowledge and concurrently submits four same-key attempts through the real gateway. Exactly one creates a visit; all receipts share UUID/time. Changed payload conflicts, forged scope fails, wrong CSRF fails, reset revokes the old session, and stopped attendance returns unconfirmed 503 while gateway liveness stays available. The owned fixture DB contains exactly one normalized self-reported visit. The full process suite passes 5 tests in 4 files (37.03 seconds), including all previous auth, lifecycle, development proxy and IPC checks. No operator service or database is used.
 
+Cleanup command/runbook checkpoint: added `pnpm attendance:cleanup` without dependency/lockfile changes. The operator runbook documents explicit version-1 upgrade, self-report validation, uncertain retry, quotas, the 30-day project default, startup/hourly/manual maintenance and logical-erasure/backup/rollback limits. The actual package command removed one expired synthetic fixture visit and exited 0; its fixture was disposed after verification. No operator migration or cleanup occurred.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.

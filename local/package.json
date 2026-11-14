@@ -15,6 +15,7 @@
     "setup:local": "node scripts/setup-local.mjs",
     "config:check": "node scripts/check-config.mjs",
     "staff:provision": "node services/gateway/provision-staff.ts",
+    "attendance:cleanup": "node services/attendance/cleanup.ts",
     "test:tooling": "node --test tests/tooling/*.test.mjs",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --project tsconfig.json",
