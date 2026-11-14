@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — checkpoint 1 verified and ready for commit approval; HTTP/login/UI pending |
+| Status | In progress — checkpoint 1 verified; credentials and HTTP/login/UI pending |
 | Branch | `feat/MS-001-access-controls` |
 | Owner | Abinash Ghimire; Codex implements within the owner's active request |
 | Dependencies | MS-000 local acceptance recorded; local main contains foundation at `7e96e25` |
@@ -71,7 +71,7 @@ The owner authorized grouped local commits and the private-branch rebase/squash 
 
 | Order | Outcome and proposed commit message | Verification before commit | Status |
 | --- | --- | --- | --- |
-| 1 | Gateway session store, specification and active-scope documentation — `feat(MS-001): add bounded gateway session lifecycle` | Session unit tests, existing unit/tooling suites, lint/typecheck, changed-doc link and whitespace checks, preserved index | Passed locally; uncommitted, awaiting owner approval |
+| 1 | Gateway session store, specification and active-scope documentation — `feat(MS-001): add bounded gateway session lifecycle` | Session unit tests, existing unit/tooling suites, lint/typecheck, changed-doc link and whitespace checks, preserved unrelated staging | Specification committed as `ebcb51e`; verified session implementation in this commit |
 | 2 | Local credential provisioning and verification — `feat(MS-001): provision local staff credentials safely` | Password success/failure, malformed/absent files, safe setup/CLI behavior, resource/concurrency bounds, redaction | Planned |
 | 3 | Versioned auth contracts, cookies, CSRF, roles and limits — `feat(MS-001): enforce browser access controls` | Fastify HTTP tests for fixation/rotation/expiry, Origin/Host/metadata, CSRF, forged context, rate and capacity limits, dependency failure | Planned |
 | 4 | Kiosk lifecycle and staff login/logout UI — `feat(MS-001): connect kiosk and staff sessions` | Accessible UI, reload/expiry/logout and unauthorized behavior; Chromium smoke; no browser-persisted identity | Planned |
@@ -126,7 +126,7 @@ Checkpoint 1 adds an unused module and tests; no running route, configuration, d
 - Decisions: process-memory sessions, separate kiosk/staff capacity, digest lookup keys, monotonic expiry, explicit activity refresh, no new runtime dependencies.
 - Limitations: session module is not connected to HTTP; credentials, authorization, request limits, UI and full acceptance remain pending. The working-copy dependency installation is incomplete; verification succeeded in a separate frozen offline-installed copy. Pre-existing unsafe staging is preserved and must be excluded from any approved commit. MS-001 is not complete.
 - Follow-up tasks: MS-002 and MS-003 remain dependent on completed access controls; no implementation is authorized for them.
-- Verified revision/date: base `7e96e25`, local uncommitted MS-001 checkpoint on 13 November 2026. No commit SHA or PR is claimed for this checkpoint.
+- Verified revision/date: base `7e96e25`, specification commit `ebcb51e` and subsequent locally verified session checkpoint on 13 November 2026. No PR/publication is claimed. `git fetch origin main` confirmed remote main still at `ccf3c34`; preserve the separate local MS-000 foundation commit during later rebase/squash.
 
 ## Design references
 
