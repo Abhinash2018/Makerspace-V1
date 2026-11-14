@@ -119,6 +119,8 @@ Attendance HTTP/retention checkpoint: authenticated `POST /internal/v1/visits` v
 
 Bounded HTTP response checkpoint: `boundedResponse` returns status plus parsed JSON only for success or explicitly allowed error statuses. Existing `boundedJson` callers retain the success-only contract. Loopback validation, redirect rejection, time/body/type bounds, cancellation and no-retry behavior are unchanged and also apply to accepted error bodies. Three real-loopback HTTP tests pass, including allowed 409, rejected unrelated statuses, oversized/malformed error JSON and redirects even when listed; focused lint and full typecheck pass. Domain callers must still validate the response schema, status and request ID.
 
+Cleanup CLI checkpoint: `services/attendance/cleanup.ts` explicitly loads validated configuration, deletes expired visits and prints only a count. It rejects arguments and emits fixed errors. A real native-Node subprocess test invokes it outside the workspace cwd with a disposable synthetic fixture, proves one expired row is removed, rejects an argument before deletion and checks output contains no fixture identity/scope. That test, focused lint and full typecheck pass. The package command/runbook follows separately; no operator cleanup was run.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.
