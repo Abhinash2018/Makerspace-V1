@@ -74,7 +74,7 @@ Finish each group with focused checks and task evidence; inspect and commit name
 | Group | Outcome / proposed message | Checks | Status |
 | --- | --- | --- | --- |
 | 1 | `docs(MS-002): define manual check-in contracts and scope` | Links/whitespace, baseline and dependency refs | Committed as `45db271`; 9 local links and whitespace checks pass |
-| 2 | `feat(MS-002): validate manual check-in payloads` | Strict schemas, normalization, bounds, error contracts | Request/response schema tests, focused lint and full typecheck pass; transport errors follow with HTTP wiring |
+| 2 | `feat(MS-002): validate manual check-in payloads` | Strict schemas, normalization, bounds, error contracts | Schemas `2282398`; fixed errors `d5bf699`; focused checks pass |
 | 3 | `feat(MS-002): migrate owned attendance visit storage` | Version-1 upgrade, rerun, unknown-owner refusal, rollback/preservation | `30a3732`; passed |
 | 4 | `feat(MS-002): record transactional idempotent visits` | Duplicate/concurrent keys, payload conflict, retention boundary, locks/missing DB | `ffb0bcb`; native syntax constraint `88d5c57`; passed |
 | 5 | Authenticated internal visit writes, maintenance and CLI, split groups | Internal auth, invalid bodies, persistence success/failure, cleanup lifecycle | `385a1fb`, `a4ef0d7`, `a9538cf`; passed |
@@ -166,5 +166,7 @@ Dependency completion record: MS-001's permanent task file now records its actua
 - No cloud runtime, new package/model/global install, operator/student data copy, push or deployment introduced. Remote CI/Linux, Safari, production load/backup erasure and institutional retention approval are unrun/outside this acceptance. The original working dependency tree remains incomplete; the separate verified copy is the source of passing results.
 
 Final local rebase/squash follows after the documentation groups. Preserve all development commits on the task branch; main receives one task commit. Record its actual SHA when the next task begins rather than fabricating a future value here.
+
+Workspace guide checkpoint: `local/README.md` now describes manual check-in/cleanup/migration, attendance ownership, native erasable TypeScript and the 80-test inventory, with links to the operator runbook and task evidence. This documentation-only group changes no verified runtime behavior.
 
 Design references consulted: official [SQLite transactions](https://www.sqlite.org/lang_transaction.html), [table constraints](https://www.sqlite.org/lang_createtable.html), and [secure-delete pragma](https://www.sqlite.org/pragma.html#pragma_secure_delete). These guide implementation, not evidence of secure physical erasure or institutional policy approval.
