@@ -1,12 +1,12 @@
 # Task index
 
-**MS-000** has recorded local acceptance evidence. The owner authorized starting **MS-001** on 13 November 2026; its task specification and evidence are linked below. Later rows reserve IDs and boundaries and are not authorization to implement them or create their branches.
+**MS-000** and **MS-001** have local acceptance evidence. MS-001 landed on local main as `c616a00` after 14 grouped feature commits and a current-base rebase check. On 13 November 2026 the owner authorized finishing each task and continuing this backlog in dependency order, on separate branches with grouped local commits and a final local rebase/squash. Active task: **MS-002**. Later rows need a full specification before implementation. No push/deployment is authorized.
 
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |
 | [MS-000](MS-000-foundation.md) | `chore/MS-000-local-foundation` | Local microservice skeleton, kiosk shell, Ollama diagnostics, CI | None |
 | [MS-001](MS-001-access-controls.md) | `feat/MS-001-access-controls` | Local staff sign-in, kiosk sessions, CSRF, authorization, rate limits, session store | MS-000 |
-| MS-002 | `feat/MS-002-manual-checkin` | Name/NetID visits, validation, self-reported labeling, idempotency, retention | MS-001 |
+| [MS-002](MS-002-manual-checkin.md) | `feat/MS-002-manual-checkin` | Name/NetID visits, validation, self-reported labeling, idempotency, retention | MS-001 |
 | MS-003 | `feat/MS-003-document-ingestion` | Approved local PDFs, page extraction, versioning, local embedding/index pipeline | MS-001 |
 | MS-004 | `feat/MS-004-grounded-answers` | Local Ollama answers with citations, uncertainty behavior, evaluation, cancellation | MS-003 |
 | MS-005 | `feat/MS-005-staff-history` | Protected paginated visit history, local dates, safe CSV export | MS-002 |
