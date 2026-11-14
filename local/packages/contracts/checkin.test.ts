@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
 import { checkinRequestSchema, checkinResponseSchema, internalVisitRequestSchema } from './checkin.ts';
+import { errorSchema } from './index.ts';
+import { errorBody } from '../observability/index.ts';
 
 const idempotencyKey = '0464accc-6eed-44ce-a064-d38f29dcba93';
 const valid = { name: '  Jose\u0301   O’Neil  ', netId: '  AB123  ', idempotencyKey: idempotencyKey.toUpperCase() };
@@ -21,4 +23,5 @@ it('bounds confirmations and never returns submitted identity or unverified stat
   for (const extra of [{ name: 'private' }, { netId: 'private' }, { sessionScope: 'private' }]) expect(checkinResponseSchema.safeParse({ ...response, ...extra }).success).toBe(false);
   expect(checkinResponseSchema.safeParse({ ...response, selfReported: false }).success).toBe(false);
   expect(checkinResponseSchema.safeParse({ ...response, recordedAt: 'yesterday' }).success).toBe(false);
+  for (const code of ['idempotency_conflict', 'attendance_unavailable'] as const) expect(errorSchema.safeParse(errorBody(code, idempotencyKey)).success).toBe(true);
 });
