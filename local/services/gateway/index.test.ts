@@ -5,7 +5,7 @@ import { expect, it } from 'vitest';
 import { parseConfiguration } from '../../packages/config/index.mjs';
 import { createGateway } from './index.ts';
 
-it('serves only built assets, rejects hostile browser context and leaves future APIs absent', async () => {
+it('serves only built assets, rejects hostile browser context and separates guarded check-in from absent APIs', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'ms000-gateway-'));
   mkdirSync(path.join(root, 'assets')); writeFileSync(path.join(root, 'index.html'), '<h1>Kiosk</h1>');
   writeFileSync(path.join(root, 'assets', 'app-123.js'), 'void 0;'); writeFileSync(path.join(root, '.env'), 'private');
@@ -23,6 +23,7 @@ it('serves only built assets, rejects hostile browser context and leaves future 
     expect(status.statusCode).toBe(200); expect(status.json().state).toBe('unavailable');
     expect(JSON.stringify(status.json())).not.toContain(config.serviceToken);
     const browser = { ...headers, origin: 'http://127.0.0.1:3000', 'x-kiosk-bootstrap': '1' };
+    expect((await app.inject({ method: 'POST', url: '/api/v1/checkin', headers: browser, payload: { name: 'Synthetic Visitor', netId: 'ab123', idempotencyKey: '0464accc-6eed-44ce-a064-d38f29dcba93' } })).statusCode).toBe(401);
     const session = await app.inject({ method: 'POST', url: '/api/v1/session', headers: browser, payload: {} });
     expect(session.statusCode).toBe(200); expect(session.json().role).toBe('kiosk');
     const login = await app.inject({ method: 'POST', url: '/api/v1/staff/login', headers: { ...browser, cookie: String(session.headers['set-cookie']).split(';')[0]!, 'x-csrf-token': session.json().csrfToken }, payload: { password: 'synthetic unavailable password' } });
