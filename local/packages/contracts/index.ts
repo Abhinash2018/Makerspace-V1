@@ -15,7 +15,8 @@ export const readySchema = z.strictObject({
 });
 export const errorSchema = z.strictObject({
   error: z.strictObject({
-    code: z.enum(['not_found', 'unauthorized', 'forbidden_host', 'forbidden_origin', 'bad_request', 'internal_error', 'request_too_large']),
+    code: z.enum(['not_found', 'unauthorized', 'forbidden_host', 'forbidden_origin', 'bad_request', 'internal_error', 'request_too_large',
+      'forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity']),
     message: z.string().min(1).max(100), requestId: requestIdSchema,
   }),
 });
@@ -33,3 +34,15 @@ export type ModelStatus = z.infer<typeof modelStatusSchema>;
 export type Component = z.infer<typeof componentSchema>;
 export type SystemStatus = z.infer<typeof systemStatusSchema>;
 export type Configuration = ReturnType<typeof import('../config/index.mjs').loadConfiguration>;
+
+// Browser auth v1. Session bearer identifiers are cookie-only, never JSON.
+export const sessionResponseSchema = z.strictObject({
+  requestId: requestIdSchema, role: z.enum(['kiosk', 'staff']),
+  csrfToken: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+  idleExpiresInMs: z.number().nonnegative().max(28_800_000),
+  absoluteExpiresInMs: z.number().nonnegative().max(28_800_000),
+}).refine(value => value.idleExpiresInMs <= value.absoluteExpiresInMs);
+export const sessionRequestSchema = z.strictObject({});
+export const staffLoginSchema = z.strictObject({ password: z.string().min(1).max(256) });
+export const signedOutSchema = z.strictObject({ requestId: requestIdSchema, signedOut: z.literal(true) });
+export type BrowserSession = z.infer<typeof sessionResponseSchema>;

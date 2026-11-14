@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { errorSchema, liveSchema, modelStatusSchema, readySchema, requestIdSchema, systemStatusSchema } from './index.ts';
+import { errorSchema, liveSchema, modelStatusSchema, readySchema, requestIdSchema, systemStatusSchema, sessionResponseSchema, staffLoginSchema, sessionRequestSchema, signedOutSchema } from './index.ts';
 
 const requestId = '0464accc-6eed-44ce-a064-d38f29dcba93';
 describe('v1 HTTP contracts', () => {
+  it('keeps auth v1 payloads bounded, strict and free of bearer identifiers', () => {
+    const session = { requestId, role: 'kiosk', csrfToken: 'a'.repeat(43), idleExpiresInMs: 120000, absoluteExpiresInMs: 1800000 };
+    expect(sessionResponseSchema.parse(session)).toEqual(session);
+    for (const extra of [{ token: 'private' }, { password: 'private' }, { userId: 'private' }]) expect(sessionResponseSchema.safeParse({ ...session, ...extra }).success).toBe(false);
+    for (const invalid of [{ role: 'admin' }, { idleExpiresInMs: -1 }, { csrfToken: 'short' }]) expect(sessionResponseSchema.safeParse({ ...session, ...invalid }).success).toBe(false);
+    expect(staffLoginSchema.safeParse({ password: 'synthetic passphrase' }).success).toBe(true);
+    expect(staffLoginSchema.safeParse({ password: 'x'.repeat(257) }).success).toBe(false);
+    expect(staffLoginSchema.safeParse({ password: 'synthetic', role: 'staff' }).success).toBe(false);
+    expect(sessionRequestSchema.safeParse({ role: 'staff' }).success).toBe(false);
+    expect(signedOutSchema.parse({ requestId, signedOut: true }).signedOut).toBe(true);
+    for (const code of ['forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity']) expect(errorSchema.safeParse({ error: { code, message: 'Request failed.', requestId } }).success).toBe(true);
+  });
   it('validates bounded request IDs and consistent errors without extra data', () => {
     expect(requestIdSchema.safeParse(requestId).success).toBe(true);
     for (const invalid of ['', 'x'.repeat(10000), ['a'], 'visitor-name']) expect(requestIdSchema.safeParse(invalid).success).toBe(false);
