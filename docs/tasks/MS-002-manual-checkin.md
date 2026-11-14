@@ -73,8 +73,8 @@ Finish each group with focused checks and task evidence; inspect and commit name
 
 | Group | Outcome / proposed message | Checks | Status |
 | --- | --- | --- | --- |
-| 1 | `docs(MS-002): define manual check-in contracts and scope` | Links/whitespace, baseline and dependency refs | In progress |
-| 2 | `feat(MS-002): validate manual check-in payloads` | Strict schemas, normalization, bounds, error contracts | Planned |
+| 1 | `docs(MS-002): define manual check-in contracts and scope` | Links/whitespace, baseline and dependency refs | Committed as `45db271`; 9 local links and whitespace checks pass |
+| 2 | `feat(MS-002): validate manual check-in payloads` | Strict schemas, normalization, bounds, error contracts | Request/response schema tests, focused lint and full typecheck pass; transport errors follow with HTTP wiring |
 | 3 | `feat(MS-002): migrate owned attendance visit storage` | Version-1 upgrade, rerun, unknown-owner refusal, rollback/preservation | Planned |
 | 4 | `feat(MS-002): record transactional idempotent visits` | Duplicate/concurrent keys, payload conflict, retention boundary, locks/missing DB, synthetic SQL inputs | Planned |
 | 5 | `feat(MS-002): expose authenticated internal visit writes` | Internal auth, invalid bodies, persistence success/failure, cleanup lifecycle | Planned |
@@ -102,6 +102,8 @@ Finish each group with focused checks and task evidence; inspect and commit name
 | Baseline/branch | Inspect source/status/manifests/scripts, `git switch -c feat/MS-002-manual-checkin main` | Passed, 13 November 2026 | Local base `c616a00`; unrelated staging preserved; no push |
 | New unit/process/browser checks | To fill per group | Not run | No MS-002 runtime behavior implemented yet |
 | Offline / platform | To fill during acceptance | Not run | Earlier MS-001 results are historical; no real student data or device rollout |
+
+Contract checkpoint: `packages/contracts/checkin.ts` adds strict browser/internal request and identity-free confirmation schemas. Three tests pass in the offline-installed verification copy, as do focused lint and full typecheck. Unicode NFC/space normalization, NetID casing/bounds, UUID canonicalization, invalid controls, oversized inputs, malformed keys and forged role/scope fields are covered. No endpoint or visit table is enabled by this group.
 
 ## Contributor explanation
 
