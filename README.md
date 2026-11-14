@@ -4,6 +4,8 @@ Prepared for Abinash Ghimire • 6 November 2026
 
 ## Current status
 
+MS-001 local access controls are implemented and locally verified on `feat/MS-001-access-controls`: staff provisioning/sign-in/sign-out, automatic kiosk sessions, CSRF/Origin/role checks, session expiry/revocation and bounded request/login work. All 61 automated tests, lint, typecheck and production build pass in an offline-installed temporary copy; Chromium desktop/mobile screenshots were reviewed. The working checkout's pre-existing dependency tree is incomplete and unrelated staged runtime/dependency files are preserved. Use [MS-001 evidence](docs/tasks/MS-001-access-controls.md) for exact checks and limits. Grouped local commits are authorized; no push/deployment has occurred.
+
 MS-000 implementation and local Windows acceptance checks are complete on `chore/MS-000-local-foundation`: kiosk, gateway, attendance/knowledge skeletons, owned SQLite migrations, Ollama diagnostics, launcher, doctor and CI. A fresh cached install passed 39 automated tests, lint, typecheck and build. Real qwen3:4b CPU inference, doctor and kiosk passed with application outbound networking blocked; Windows console Ctrl+C released app ports and restart succeeded. Use `pnpm ollama:probe --cpu` on this PC because its installed CUDA runner crashes. Remote CI/Linux and review/merge remain separate; nothing has been pushed or merged. See [the workspace guide](local/README.md) and [task evidence](docs/tasks/MS-000-foundation.md).
 
 The project will provide a touch-first Makerspace kiosk: check-in, questions answered from approved documents, optional face check-in, and protected staff history. Ollama will generate answers locally. Internet access, cloud accounts, paid APIs, and external databases must not be required during ordinary operation after installation.
@@ -18,7 +20,7 @@ The project will provide a touch-first Makerspace kiosk: check-in, questions ans
 4. Use [the offline setup contract](docs/LOCAL_SETUP.md) when implementing setup.
 5. For the next feature, copy [the task template](docs/tasks/TEMPLATE.md) into a new task file on its feature branch.
 
-Use this contributor prompt from the repository root:
+Use the current [task index](docs/tasks/INDEX.md) and `AGENTS.md` for active scope. The following original MS-000 prompt is retained as historical foundation context:
 
 > Read `AGENTS.md`, `README.md`, `docs/architecture/ARCHITECTURE.md`, `docs/LOCAL_SETUP.md`, `docs/GIT_WORKFLOW.md`, and `docs/tasks/MS-000-foundation.md`. Inspect the repository first. Implement only MS-000 on `chore/MS-000-local-foundation`, with runtime code under `local/`. Preserve existing files and Git history. Use the task's ordered commit groups, with relevant checks and evidence at each step. Ask before creating or switching branches, committing, pushing, rebasing, merging, deleting files/branches, or changing machine-wide settings. Build a runnable local foundation, test it, and record actual results in the task file. Explain the service boundaries and commands in plain language. Do not implement the future backlog or claim a push, merge, hardware test, or offline test happened unless it actually did.
 

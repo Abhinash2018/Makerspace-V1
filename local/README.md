@@ -2,6 +2,8 @@
 
 The MS-000 implementation provides a local kiosk, three independent services, owned SQLite migration tracking, and Ollama diagnostics. Automated Windows checks, real local CPU inference with application outbound networking blocked, and Windows console Ctrl+C shutdown/restart pass. No visitor data feature is enabled; Check in and Ask are visibly upcoming. Remote CI/Linux has not run.
 
+MS-001 adds local staff sign-in/sign-out and automatic kiosk sessions with expiry, CSRF/Origin/role checks and request/login limits. Use `pnpm staff:provision` in an interactive terminal to create the optional private staff credential, then restart the gateway. No default password exists; kiosk/status work without one. Begin starts a fresh visitor session and signs staff out. See the [staff access runbook](../docs/LOCAL_SETUP.md#local-staff-access-ms-001) and [MS-001 evidence](../docs/tasks/MS-001-access-controls.md) for exact policies and limitations.
+
 Read root [AGENTS.md](../AGENTS.md), [the task and commit order](../docs/tasks/MS-000-foundation.md), [architecture](../docs/architecture/ARCHITECTURE.md), and [Git workflow](../docs/GIT_WORKFLOW.md) before editing. Project documentation stays in root `docs/`.
 
 ## Toolchain and available commands
@@ -43,7 +45,7 @@ Playwright browser installation is a one-time development prerequisite. On Linux
 
 `check:toolchain` rejects the wrong Node version, mismatched manifest pins, and the wrong package manager when invoked through a package-manager script. The same guard runs during installation. Direct `node scripts/check-toolchain.mjs` verifies Node and pin consistency; use `pnpm check:toolchain` to also verify the active pnpm. A missing pnpm command means the prerequisite still needs installing through your approved method.
 
-`lint` checks JavaScript and TypeScript and fails on warnings. `typecheck` checks tooling, services, UI and tests without emitting output. Node 24 runs backend TypeScript directly; Vite bundles the kiosk. `test` runs 16 Node tooling tests and 19 Vitest unit tests. `test:integration` runs three real-process checks in synthetic temporary workspaces; `test:e2e` launches a production fixture in Chromium and blocks non-gateway browser requests. Tests do not use your workspace .env or runtime DBs. CI defines Windows and Linux jobs; remote execution/Linux validation have not yet occurred.
+`lint` checks JavaScript and TypeScript and fails on warnings. `typecheck` checks tooling, services, UI and tests without emitting output. Node 24 runs backend TypeScript directly; Vite bundles the kiosk. `test` runs 16 Node tooling tests and 39 Vitest unit tests. `test:integration` runs four real-process checks in synthetic temporary workspaces; `test:e2e` runs two production-fixture Chromium flows and blocks non-gateway browser requests. Total: 61 automated tests. Tests do not use your workspace .env, credential or runtime DBs. CI defines Windows and Linux jobs; remote execution/Linux validation have not yet occurred. The working checkout currently has an incomplete installed dependency tree; the recorded MS-001 pass used a fresh frozen offline-installed copy without changing pre-existing staging.
 
 ## Local configuration
 
@@ -58,7 +60,7 @@ The `.env` format accepts unique supported `KEY=value` assignments on single lin
 ## Contributor boundaries
 
 - `apps/kiosk/`: React shell and same-origin gateway status polling; no DB or direct model calls.
-- `services/gateway/`: static assets and bounded status aggregation; no database access.
+- `services/gateway/`: static assets/status, private staff credential, memory-only browser sessions, CSRF/role guards and bounded auth/API work; no domain database access.
 - `services/attendance/`: independent authenticated readiness and attendance.sqlite migration metadata.
 - `services/knowledge/`: independent DB readiness, knowledge.sqlite metadata and backend-only model diagnostics.
 - `packages/contracts`, `packages/http`, `packages/observability`: schemas and small technical helpers; no domain/DB models.

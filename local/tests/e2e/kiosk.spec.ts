@@ -35,8 +35,9 @@ test('built kiosk stays usable through service loss with external requests block
     await stopChild(running.children.gateway!);
     await expect(page.getByRole('status')).toHaveText('Gateway unavailable', { timeout: 16000 });
     await page.getByRole('button', { name: 'Begin' }).click();
-    await expect(page.getByRole('button', { name: 'Check in Coming soon' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Begin' })).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText('gateway');
     expect(external).toEqual([]); expect(errors).toEqual([]);
-    expect(requests.every(value => value === 'GET /' || value.startsWith('GET /assets/') || value === 'GET /api/v1/system/status')).toBe(true);
+    expect(requests.every(value => value === 'GET /' || value.startsWith('GET /assets/') || value === 'GET /api/v1/system/status' || value === 'GET /api/v1/session' || value === 'POST /api/v1/session')).toBe(true);
   } finally { await running?.stop(); fixture.dispose(); }
 });

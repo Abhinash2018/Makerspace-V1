@@ -24,6 +24,9 @@ export const errorMessages = {
   not_found: 'Route not found.', unauthorized: 'Unauthorized.', forbidden_host: 'Host is not allowed.',
   forbidden_origin: 'Origin is not allowed.', bad_request: 'Request is invalid.', internal_error: 'Request failed.',
   request_too_large: 'Request is too large.',
+  forbidden_csrf: 'Request verification failed.', forbidden_role: 'This session cannot perform that action.',
+  rate_limited: 'Too many requests. Try again later.', auth_unavailable: 'Staff sign-in is temporarily unavailable.',
+  session_capacity: 'Session capacity reached. Try again later.',
 } as const;
 export function errorBody(code: keyof typeof errorMessages, id: string) {
   return { error: { code, message: errorMessages[code], requestId: id } };

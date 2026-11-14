@@ -66,6 +66,18 @@ For this machine's installed Ollama 0.32.5 and NVIDIA driver 546.18, the CUDA ru
 
 Doctor exits 1 for degraded/unavailable and 0 only for all-ready. Model failure does not make attendance/knowledge DB readiness fail. A stopped internal service leaves the gateway UI/status readable. Status may take five seconds to refresh; the browser polls every five seconds, so allow about ten seconds to observe recovery. Service restart is explicit; the launcher is not a production supervisor.
 
+## Local staff access (MS-001)
+
+From `local/`, run `pnpm staff:provision` in an interactive terminal after `setup:local`. Enter the same private password twice when prompted. Input is masked, never accepted as an argument or redirected stdin, and is not written to `.env`. Use 15–128 characters (at most 512 UTF-8 bytes, without NUL); spaces are preserved. There is no default password, remote identity provider, public signup, or university SSO. This initial task supports one local staff account.
+
+The command exclusively creates `<RUNTIME_DIR>/gateway/staff-credential.json` with a salted scrypt hash. It refuses to replace any existing file. Only the gateway reads it, at startup. Restart the gateway after provisioning. Without a credential, kiosk and status still work and staff login reports unavailable. A malformed, oversized, unsupported or symlinked credential path prevents gateway startup; repair the file/path rather than deleting data to suppress the failure. No real credential is provisioned by automated tests.
+
+To reset a forgotten password, stop the gateway, privately back up and move the existing credential file at the operator's direction, run provisioning again, then restart. No credential can be reset through a browser route. Restart invalidates every browser session. Unix file/directory modes 0600/0700 are requested; Windows ACL inheritance is unchanged. Protect the workstation account and its private runtime directory. Do not commit credentials, runtime databases, environment files or generated output.
+
+Browser access uses a host-only HttpOnly/SameSite=Strict cookie, a separate in-memory CSRF token, and exact loopback Origin/Host checks. Kiosk sessions expire after two idle minutes or thirty total minutes; staff sessions after fifteen idle minutes or eight hours. Polling does not refresh activity. All sessions are process-memory state, so gateway restart signs everyone out. Cookies are scoped to the loopback host, not a port; other software under the same local OS account is outside this security boundary. Initial plain HTTP has no Secure-cookie guarantee. LAN/HTTPS is MS-009.
+
+All loopback callers share fixed limits: 240 API requests, 20 session creations/resets and 5 login attempts per minute. The response includes Retry-After when limited. Password verification allows one 128 MiB scrypt operation at a time, with a 192 MiB maximum allocation setting; a concurrent attempt receives a retry response. A local client can exhaust shared limits; they are bounds on work, not protection from a compromised local account. Staff credentials and request bodies never enter logs or Ollama prompts.
+
 ## Offline verification
 
 1. Complete dependency/model installation and production build while setup access is available.

@@ -2,6 +2,8 @@
 
 Status: MS-000 foundation is implemented and locally verified on Windows, including real CPU inference under application-scoped outbound firewall isolation and native console Ctrl+C/restart. The first diagram matches the running service boundaries; later-feature diagrams remain proposals. Linux/remote CI has not run. On this PC the developer probe needs --cpu because the existing Ollama CUDA runner crashes; no automatic fallback or driver change is introduced.
 
+MS-001 adds locally verified gateway browser access controls: kiosk/staff sessions, private credential provisioning, CSRF/Origin/role checks and bounded login/API work. See [MS-001](../tasks/MS-001-access-controls.md) for contracts and evidence. No attendance or document feature is enabled by access controls alone.
+
 ## Decision and tradeoff
 
 Use a monorepo with independently runnable local services. A monorepo is one Git repository containing multiple applications; it does not mean one backend process. Each service owns its APIs, database, migrations, and tests. All services initially run on one PC.
@@ -34,7 +36,7 @@ In MS-000 the service databases contain migration metadata only. Knowledge check
 | Component | Initial responsibility | Later responsibility | Owns data |
 | --- | --- | --- | --- |
 | Kiosk | Accessible shell and system status | Check-in and Ask screens; consent and captions | Transient UI state only; no persistent identity on kiosk |
-| Gateway | Same-origin UI/API entry; status aggregation; request limits | Browser sessions, CSRF, authorization and staff routing | Session/auth store added in MS-001 |
+| Gateway | Same-origin UI/API, status, kiosk/staff sessions, CSRF, authorization and limits | Authorized feature routing | Private staff hash file and bounded process-memory sessions |
 | Attendance | Health/readiness and migration skeleton | Visits, idempotency, retention, staff history, consented visit photos | Attendance DB and private photo directory |
 | Knowledge | Health/readiness, Ollama adapter and diagnostics | Approved document ingestion, retrieval, answer orchestration and citations | Knowledge DB, document files and derived index |
 | Ollama | Local inference runtime | Chat generation and local text embeddings | Downloaded model files; no authoritative attendance data |
@@ -76,6 +78,14 @@ Ollama's local API is not our user authorization boundary. Do not expose its por
 Use `/api/v1` for browser contracts and `/internal/v1` for service contracts. Runtime-validate incoming data and response shapes. The gateway does not contain attendance business rules or SQL. Add a contract version/new field compatibly before removing old fields, and test consumers when a contract changes.
 
 Initial internal authentication is a generated shared local service token stored outside Git. Before any future LAN/multi-host deployment, replace it with scoped credentials per caller/service and authenticated encrypted transport. The gateway must strip caller-supplied internal identity headers and construct its own trusted context only after authorization.
+
+### Browser access controls (MS-001)
+
+The gateway owns browser authorization. Its staff credential is a strict, fixed-cost salted scrypt record under `<RUNTIME_DIR>/gateway/staff-credential.json`; the operator creates it with a masked terminal command. Missing credentials disable staff login while kiosk/status remain usable. Corrupt or symlinked credential storage fails gateway startup. Passwords, cookie tokens and browser identity are never forwarded to the domain services or Ollama.
+
+Sessions are deliberately bounded process memory rather than the originally proposed durable session store. Restart revokes all sessions; no auth database or migration is introduced. Separate 128-kiosk/16-staff capacities prevent kiosk churn from evicting staff. Lookup keys are session-token SHA-256 digests. Independent CSRF tokens, inclusive idle/absolute deadlines and token rotation are gateway-local business logic, not shared-package services. This single-gateway decision must be revisited before replicas or LAN rollout.
+
+Browser v1 routes are `POST/GET /api/v1/session` and `POST /api/v1/staff/login` / `logout`. The cookie is host-only, HttpOnly, SameSite=Strict and Path=/; Secure requires MS-009 HTTPS. Mutations need an exact allowed Origin and session CSRF header; initial bootstrap additionally needs a custom non-simple header. Fetch Metadata rejects cross-site/same-site API requests. Every future protected route must call the gateway's role/CSRF guard. No arbitrary upstream proxy or fake staff feature is exposed. Schemas contain request IDs and bounded role/CSRF/expiry metadata only; the bearer token is cookie-only. See the [operator runbook](../LOCAL_SETUP.md#local-staff-access-ms-001) for policies, shared rate limits and local-account/Windows ACL limits.
 
 ### Bootstrap configuration contract (MS-000 group 2b)
 

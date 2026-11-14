@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
+export type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { Service } from '../contracts/index.ts';
 import { errorBody, logEvent, requestId } from '../observability/index.ts';
 
