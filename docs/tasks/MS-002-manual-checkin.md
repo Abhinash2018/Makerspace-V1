@@ -129,6 +129,8 @@ Manual form/browser checkpoint: the kiosk now enables Check in for kiosk session
 
 Form style checkpoint: local CSS adds full-width touch-sized fields, readonly/busy states, focus rings and wrapping action controls using existing colors. Desktop 1280×900 and mobile 390×844 full-page screenshots were visually inspected: self-report notice, fields, feedback and controls are readable, with no clipping or horizontal overflow. No asset/dependency/network behavior changed.
 
+Real-process check-in checkpoint: `tests/integration/checkin.test.ts` starts independent fixture services, stops knowledge and concurrently submits four same-key attempts through the real gateway. Exactly one creates a visit; all receipts share UUID/time. Changed payload conflicts, forged scope fails, wrong CSRF fails, reset revokes the old session, and stopped attendance returns unconfirmed 503 while gateway liveness stays available. The owned fixture DB contains exactly one normalized self-reported visit. The full process suite passes 5 tests in 4 files (37.03 seconds), including all previous auth, lifecycle, development proxy and IPC checks. No operator service or database is used.
+
 ## Contributor explanation
 
 The browser submits a bounded self-report to the gateway. The gateway checks the session and adds an opaque attempt namespace; attendance alone decides whether to insert, replay or reject the transaction. Losing an HTTP reply is not proof the write failed, so the UI reuses its key for an explicit retry. That prevents a second write without guessing whether two people have the same name or NetID.
