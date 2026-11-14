@@ -99,6 +99,8 @@ Finish focused tests/evidence before each exact-path commit; split coupled work 
 | New checks | Fill per group | Not run | No MS-003 runtime implementation yet |
 | Real/offline/platform | Fill during acceptance | Not run | Existing MS-002 results are historical; no operator documents/data imported |
 
+PDF dependency checkpoint — 14 November 2026: pinned `pdfjs-dist` 6.5.438 in the knowledge-owned manifest and lockfile, resolving its optional local `@napi-rs/canvas` 1.1.1 platform packages. Three packages were added for this Windows platform in the isolated verification copy. Native Node 24 imports the local legacy PDF.js build and reports the expected version/getDocument API. `pnpm install --frozen-lockfile --offline` then passed with an unchanged lockfile. Existing pins and the native-build allowlist are unchanged; no global tool update was accepted. The original installed/staged dependency tree was not modified. No parser behavior, document import or model download is claimed from dependency verification.
+
 ## Contributor explanation
 
 Import is a deliberate preparation step. It extracts bounded page text, embeds it using one installed local model and atomically publishes a version only when all pieces are complete. The index knows which model and page produced every vector. Later answers must retrieve compatible current evidence; a model change cannot silently reuse incompatible old vectors. A failed import leaves the previously accepted version available.
