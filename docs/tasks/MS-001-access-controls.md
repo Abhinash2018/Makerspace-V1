@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — checkpoint 1 verified; credentials and HTTP/login/UI pending |
+| Status | Local implementation and acceptance complete; final Git handoff in progress, remote CI/Linux unrun |
 | Branch | `feat/MS-001-access-controls` |
 | Owner | Abinash Ghimire; Codex implements within the owner's active request |
 | Dependencies | MS-000 local acceptance recorded; local main contains foundation at `7e96e25` |
@@ -43,7 +43,7 @@ Kiosk idle expiry is 2 minutes with a 30-minute absolute limit; staff idle expir
 
 Allow at most 128 kiosk and 16 staff sessions, with separate capacity so kiosk churn cannot evict staff. Reclaim expired sessions when creating/rotating sessions; reject overload without evicting active sessions. Rotation issues a new session and CSRF token, invalidates the previous identifier, and retains the old session if replacement fails. The session store does not verify passwords; the later HTTP authentication layer may request a staff rotation only after credential verification.
 
-### Credential and browser work planned for later checkpoints
+### Credential and browser design (implemented)
 
 - Operator-only local provisioning CLI; no default staff password or credential in `.env.example`. Hash passwords with a salted Node scrypt record and verify with constant-time comparison. Persist only the hash/parameters under ignored gateway runtime storage; validate file bounds, ownership/path and supported format. Plan exact scrypt resource limits with measured checks before implementing this checkpoint. Never pass a password on the command line or print it. Missing configuration leaves staff login unavailable while the kiosk/status remains usable.
 - Use a host-only session cookie with `HttpOnly`, `SameSite=Strict`, `Path=/` and bounded lifetime. Initial plain HTTP loopback cannot promise HTTPS cookie security; require `Secure` with trusted HTTPS in MS-009. No session/password in browser localStorage, sessionStorage, URL or logs.
@@ -52,9 +52,9 @@ Allow at most 128 kiosk and 16 staff sessions, with separate capacity so kiosk c
 - Gateway enforces route roles and builds upstream context from server-owned state. Strip caller-provided internal token/identity/role headers. Do not create arbitrary downstream proxies or protected success stubs for unimplemented features. Internal health/status remains compatible.
 - Bound login attempts before expensive password hashing and bound overall requests, session creation and limiter memory. Use fixed errors and `Retry-After` on 429. Ignore spoofed forwarded client identities on loopback. No automatic retries for login/mutations.
 
-### HTTP contract plan (not enabled by checkpoint 1)
+### HTTP v1 contract (enabled after checkpoint 1)
 
-All JSON responses include a request ID and use strict shared technical schemas. Freeze exact payloads in checkpoint 3 before adding routes. Planned paths:
+All JSON responses include a request ID and use strict shared technical schemas. Checkpoint 3 defines the exact schemas before enabling these paths:
 
 | Method and path | Caller and result |
 | --- | --- |
@@ -63,7 +63,7 @@ All JSON responses include a request ID and use strict shared technical schemas.
 | `POST /api/v1/staff/login` | Valid kiosk session + Origin/CSRF + bounded credentials; rotates into staff session after verification |
 | `POST /api/v1/staff/logout` | Valid staff session + Origin/CSRF; revokes session and clears cookie |
 
-Public liveness and existing system-status routes stay usable. Existing unavailable check-in/Ask routes stay unavailable. Unauthorized is 401, disallowed role/CSRF/origin is 403, malformed input is 400, overload is 429 or session-capacity 503. Error messages must not reveal credential existence or values. No HTTP contract changes exist in checkpoint 1.
+Public liveness and existing system-status routes stay usable. Existing unavailable check-in/Ask routes stay unavailable. Unauthorized is 401, disallowed role/CSRF/origin is 403, malformed input is 400, overload is 429 or session-capacity 503. Error messages never reflect credential values. Checkpoint 1 alone changed no HTTP contract; later commits enable the versioned routes.
 
 ## Ordered implementation checkpoints
 
@@ -71,11 +71,11 @@ The owner authorized grouped local commits and the private-branch rebase/squash 
 
 | Order | Outcome and proposed commit message | Verification before commit | Status |
 | --- | --- | --- | --- |
-| 1 | Gateway session store, specification and active-scope documentation — `feat(MS-001): add bounded gateway session lifecycle` | Session unit tests, existing unit/tooling suites, lint/typecheck, changed-doc link and whitespace checks, preserved unrelated staging | Specification committed as `ebcb51e`; verified session implementation in this commit |
+| 1 | Gateway session store, specification and active-scope documentation | Session unit tests, existing unit/tooling suites, lint/typecheck, changed-doc link and whitespace checks, preserved unrelated staging | Specification `ebcb51e`; sessions `e5db205` |
 | 2 | Local credential provisioning and verification — split module, terminal and command/runbook groups | Password success/failure, malformed/absent files, safe setup/CLI behavior, resource/concurrency bounds, redaction | Implemented and locally checked; no live credential created |
 | 3 | Versioned auth contracts, cookies, CSRF, roles and limits — split contracts, limit, HTTP and gateway groups | Fastify HTTP tests for fixation/rotation/expiry, Origin/Host/metadata, CSRF, forged context, rate and capacity limits, dependency failure | Implemented and locally checked |
-| 4 | Kiosk lifecycle and staff login/logout UI — `feat(MS-001): connect kiosk and staff sessions` | Accessible UI, reload/expiry/logout and unauthorized behavior; Chromium smoke; no browser-persisted identity | Planned |
-| 5 | Real-process acceptance and runbook — `test(MS-001): verify local access-control boundaries` | Frozen offline install, all lint/type/build/unit/process/browser suites; synthetic credentials; final source/index review | Planned |
+| 4 | Kiosk lifecycle and staff login/logout UI | Accessible UI, reload/expiry/logout and unauthorized behavior; Chromium smoke; no browser-persisted identity | UI/browser flows `22e7516`; styling `0372dd1` |
+| 5 | Real-process acceptance and runbook | Frozen offline install, all lint/type/build/unit/process/browser suites; synthetic credentials; final source/index review | Process boundary `870634b`; provisioning runbook `512da0f`; final evidence below |
 
 ### Checkpoint 1 acceptance
 
@@ -87,16 +87,16 @@ The owner authorized grouped local commits and the private-branch rebase/squash 
 
 ## Acceptance criteria
 
-- [ ] Kiosk begins without staff pairing; an invalid/expired/revoked cookie cannot authorize a protected action.
-- [ ] Valid provisioned staff credentials grant only the documented staff role; missing/incorrect credentials never do.
-- [ ] Login rotates session and CSRF tokens; the old session cannot be reused. Logout and gateway restart invalidate staff access.
-- [ ] Idle and absolute expiry apply at their deadlines; session/status polling cannot keep an idle session alive.
-- [ ] Unsafe routes reject missing/hostile Origin, wrong/missing CSRF, hostile Fetch Metadata and forged client identity.
-- [ ] Request/login/session limits have bounded memory; rejected traffic cannot evict active staff sessions or trigger unbounded hashing.
-- [ ] Staff credential/token values do not enter Git, logs, responses (except CSRF), URLs, browser storage, or attendance/knowledge databases.
-- [ ] Browser and real-process tests prove staff/kiosk separation, expiry, logout, and fail-closed behavior with synthetic data.
-- [ ] Existing local status, health, service isolation, startup/shutdown, disabled future features and offline assets remain correct.
-- [ ] Runbook, contract schemas, task evidence and relevant automated checks describe the implemented behavior. No remote/device checks are claimed without evidence.
+- [x] Kiosk begins without staff pairing; an invalid/expired/revoked cookie cannot authorize a protected action.
+- [x] Valid provisioned staff credentials grant only the documented staff role; missing/incorrect credentials never do.
+- [x] Login rotates session and CSRF tokens; the old session cannot be reused. Logout and gateway restart invalidate staff access.
+- [x] Idle and absolute expiry apply at their deadlines; session/status polling cannot keep an idle session alive.
+- [x] Unsafe routes reject missing/hostile Origin, wrong/missing CSRF, hostile Fetch Metadata and forged client identity.
+- [x] Request/login/session limits have bounded memory; rejected traffic cannot evict active staff sessions or trigger unbounded hashing.
+- [x] New staff credentials/tokens do not enter commits, logs, JSON responses (except CSRF), URLs, browser storage, or attendance/knowledge databases. The bearer token is delivered only through Set-Cookie; pre-existing unsafe staging is outside this task and excluded from every commit.
+- [x] Browser, real-process and clock-driven HTTP/unit tests prove staff/kiosk separation, expiry, logout, and fail-closed behavior with synthetic data.
+- [x] Existing local status, health, service isolation, startup/shutdown, disabled future features and offline assets remain correct.
+- [x] Runbook, contract schemas, task evidence and relevant automated checks describe the implemented behavior. No remote/device checks are claimed without evidence.
 
 ## Verification evidence
 
@@ -130,6 +130,21 @@ Staff form styling checkpoint: added local CSS for password inputs, focus rings,
 
 Real-process boundary checkpoint: `tests/integration/access.test.ts` provisions only a synthetic credential in a temporary fixture, logs in through the running gateway, proves the old kiosk cookie and wrong CSRF fail, proves staff cookies/forged roles cannot authenticate directly to attendance/knowledge, restarts all owned processes and confirms the staff session is invalid. Both service-owned metadata DB files remain byte-identical. The complete integration suite passes 4 tests in 3 files (31.34 seconds), including existing dev proxy, IPC shutdown, service failure/recovery and occupied-port behavior. The intentionally denied Vite `.env` access reports its synthetic temp path; no config content is served. Existing color-environment warnings remain visible.
 
+## Final local acceptance — 13 November 2026
+
+| Check | Actual result and limits |
+| --- | --- |
+| Pinned frozen offline installation | Node 24.22.2 / pnpm 10.34.9; 223 cached packages, zero downloads, unchanged lockfile; no new dependency |
+| `pnpm test` | 16 tooling + 39 Vitest tests in 19 files pass, none skipped |
+| `pnpm lint`, `pnpm build` | Full lint and typechecked production build pass; source/dependency checks were not relaxed |
+| `pnpm test:integration` | 4 real-process tests in 3 files pass, 31.34 seconds |
+| `pnpm test:e2e` | 2 Chromium flows pass, 22.9 seconds; zero external browser attempts; desktop/mobile screenshots visually inspected |
+| Source/Git/docs audit | All task runtime files match the tested copy; no environment/runtime/dependency/build/tool artifacts enter task commits; unrelated staged-entry content digest preserved; 23 local Markdown links resolve at this checkpoint |
+| Local rebase | Clean detached worktree at `870634b`, `git rebase main`: HEAD is up to date; no source or commit changed, so the passing checks remain applicable. No autostash containing unrelated runtime files was created |
+| Unrun/existing limits | Remote CI/Linux, Safari, physical terminal masking and new machine-wide offline/model checks unrun. Existing checkout dependencies are incomplete; tests passed in the separate offline-installed copy. No operator credential, live student data, model download, global setting or deployment introduced |
+
+The owner requested grouped commits and the final local rebase/squash workflow, followed by the remaining tasks in dependency order. Keep this task's grouped branch history. The final task squash belongs on local main after all groups are committed; no push, remote PR or remote merge is claimed. Record resulting commits through Git rather than inventing a future merge SHA in this document.
+
 ## Contributor explanation
 
 A browser will hold an opaque cookie; only the gateway can resolve it to a kiosk or staff session. A separate random CSRF token will accompany browser mutations. The session module supplies expiry, bounded storage, rotation and revocation, but does not prove that a caller knows the staff password. That verification and the browser checks must be implemented together before staff routes are usable.
@@ -144,7 +159,7 @@ Checkpoint 1 adds an unused module and tests; no running route, configuration, d
 
 - Changed files: `AGENTS.md` aligns active scope with the owner's request; `docs/tasks/INDEX.md` links this task; this file defines scope/contracts/evidence; `local/services/gateway/sessions.ts` and `sessions.test.ts` implement and check the first module.
 - Decisions: process-memory sessions, separate kiosk/staff capacity, digest lookup keys, monotonic expiry, explicit activity refresh, no new runtime dependencies.
-- Limitations: session module is not connected to HTTP; credentials, authorization, request limits, UI and full acceptance remain pending. The working-copy dependency installation is incomplete; verification succeeded in a separate frozen offline-installed copy. Pre-existing unsafe staging is preserved and must be excluded from any approved commit. MS-001 is not complete.
+- Limitations: the working-copy dependency installation is incomplete; verification succeeded in a separate frozen offline-installed copy. Pre-existing unsafe staging is preserved and excluded from the task commits. Sessions are volatile, staff authentication is one local account, cookies have no Secure attribute on initial plain loopback HTTP, limits are shared by local callers, and Windows ACLs are inherited. Remote CI/Linux, physical terminal masking and Safari are unrun. These do not grant LAN or real-data rollout approval.
 - Follow-up tasks: MS-002 and MS-003 remain dependent on completed access controls; no implementation is authorized for them.
 - Verified revision/date: base `7e96e25`, specification commit `ebcb51e` and subsequent locally verified session checkpoint on 13 November 2026. No PR/publication is claimed. `git fetch origin main` confirmed remote main still at `ccf3c34`; preserve the separate local MS-000 foundation commit during later rebase/squash.
 
