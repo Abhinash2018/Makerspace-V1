@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { systemStatusSchema } from '../../../packages/contracts/index.ts';
 import type { SystemStatus } from '../../../packages/contracts/index.ts';
 import { StaffAccess, useAccess } from './access.tsx';
+import { CheckinForm } from './checkin.tsx';
 import './style.css';
 
 const labels = { gateway: 'Kiosk gateway', attendance: 'Attendance service', knowledge: 'Knowledge service', ollama: 'Local AI model' };
@@ -14,10 +15,11 @@ const explanations: Record<string, string> = {
 function App() {
   const access = useAccess();
   const [begun, setBegun] = useState(false);
+  const [screen, setScreen] = useState<'choices' | 'checkin'>('choices');
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [offline, setOffline] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => { if (!access.session) setBegun(false); }, [access.session]);
+  useEffect(() => { if (access.session?.role !== 'kiosk') { setBegun(false); setScreen('choices'); } }, [access.session?.role]);
   useEffect(() => {
     if (begun) heading.current?.focus();
   }, [begun]);
@@ -45,11 +47,11 @@ function App() {
         <h1 id="welcome-title">Ideas start<br />with <em>you.</em></h1>
         <p className="intro">Welcome to Ingram Makerspace. Get ready to learn, build, and bring something new to life.</p>
         <p className="assistant-name">Ingram Makerspace Assistant</p>
-        {!begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) setBegun(true); }}>Begin <span aria-hidden="true">↗</span></button> : <section className="choices" aria-labelledby="choices-title">
+        {!begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
-          <div className="actions"><button disabled>Check in<span>Coming soon</span></button><button disabled>Ask a question<span>Coming soon</span></button></div>
-          <p>We’re setting things up. For help today, please speak with Makerspace staff.</p>
-          <button className="back" disabled={access.busy} onClick={async () => { if (await access.begin()) setBegun(false); }}>Back to welcome</button>
+          <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled>Ask a question<span>Coming soon</span></button></div>
+          <p>Check in here, or speak with Makerspace staff for help. Questions are coming soon.</p>
+          <button className="back" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(false); } }}>Back to welcome</button>
         </section>}
       </section>
       <aside aria-labelledby="status-title">
@@ -60,7 +62,7 @@ function App() {
           const item = status?.components[key as keyof typeof labels];
           return <li key={key}><span className={`dot ${item?.ready ? 'ready' : ''}`} aria-hidden="true" /><div><strong>{label}</strong><span>{offline ? 'Unknown — gateway offline' : !item ? 'Checking…' : explanations[item.code] ?? 'Needs attention'}</span></div></li>;
         })}</ul>
-        <p className="note">Check-in and questions are upcoming features. This preview does not collect visitor information.</p>
+        <p className="note">Manual check-in records self-reported information locally. Questions are coming soon.</p>
         <StaffAccess access={access} />
       </aside>
     </div>

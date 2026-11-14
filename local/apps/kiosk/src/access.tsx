@@ -71,6 +71,7 @@ export function useAccess() {
   }
   return {
     session, busy, message,
+    invalidate: () => { epoch.current++; apply(null); setMessage('Your session changed. Please begin or sign in again.'); },
     begin: () => change(async () => {
       const previous = await readSession();
       return request('/api/v1/session', sessionResponseSchema, {}, previous?.csrfToken);
