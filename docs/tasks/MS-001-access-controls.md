@@ -116,6 +116,8 @@ Terminal provisioning checkpoint: `provision-staff.ts` adds two masked prompts, 
 
 Auth contract checkpoint: browser v1 session metadata is strict and contains only request ID, kiosk/staff role, CSRF token and bounded remaining idle/absolute milliseconds (monotonic clocks can produce fractional values). Bearer identifiers, passwords and identity fields are rejected from responses. Login accepts only a bounded password field; bootstrap/logout accept empty objects. Added fixed errors for CSRF/role rejection, rate limiting and auth/session-capacity unavailability. Seven contracts/observability tests and focused lint pass in the verification copy. These additive schemas enable no routes by themselves.
 
+Rate-limit helper checkpoint: gateway-owned `limits.ts` implements a fixed-window bucket with constant memory, a monotonic default clock and rounded-up Retry-After seconds. Its test verifies the exact 60-second boundary, exhausted-window behavior and invalid policies; focused lint and full typecheck pass. No map is keyed by untrusted IP, cookie or forwarded headers. HTTP wiring follows in the next group.
+
 ## Contributor explanation
 
 A browser will hold an opaque cookie; only the gateway can resolve it to a kiosk or staff session. A separate random CSRF token will accompany browser mutations. The session module supplies expiry, bounded storage, rotation and revocation, but does not prove that a caller knows the staff password. That verification and the browser checks must be implemented together before staff routes are usable.
