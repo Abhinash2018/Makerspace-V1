@@ -101,5 +101,5 @@ export function registerAuth(app: FastifyInstance, options: AuthOptions) {
     reply.header('Set-Cookie', `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
     return signedOutSchema.parse({ requestId: req.id, signedOut: true });
   });
-  return { authorize, sessions };
+  return { authorize, sessions, touch: (req: FastifyRequest) => sessions.touch(token(req)) };
 }
