@@ -56,8 +56,8 @@ function bounds(filter: HistoryFilter, at: number, snapshot: number, highWater: 
   const to = nextDate ? chicagoMidnight(nextDate) : 8_640_000_000_000_000;
   return { sql: 'recorded_at_ms > ? AND recorded_at_ms >= ? AND recorded_at_ms < ? AND recorded_at_ms <= ? AND rowid <= ?', values: [at - retentionMs, from, to, snapshot, highWater] };
 }
-type Row = { id: string; name: string; net_id: string; recorded_at_ms: number };
-function record(row: Row): HistoryRecord { return historyRecordSchema.parse({ visitId: row.id, name: row.name, netId: row.net_id, recordedAt: new Date(row.recorded_at_ms).toISOString(), selfReported: true }); }
+type Row = { id: string; name: string; net_id: string; recorded_at_ms: number; photo_available?: number };
+function record(row: Row): HistoryRecord { return historyRecordSchema.parse({ visitId: row.id, name: row.name, netId: row.net_id, recordedAt: new Date(row.recorded_at_ms).toISOString(), selfReported: true, ...(row.photo_available === undefined ? {} : { photoAvailable: row.photo_available === 1 }) }); }
 function withDatabase<T>(directory: string, at: number, action: (db: ReturnType<typeof openAttendance>) => T) {
   if (!Number.isSafeInteger(at) || at < 0 || at > 8_640_000_000_000_000) throw new HistoryFailure('history_unavailable');
   let db: ReturnType<typeof openAttendance> | undefined;
@@ -80,7 +80,7 @@ export function listVisits(directory: string, input: HistoryQuery, secret: strin
     const range = bounds(query, at, snapshot, highWater);
     if (cursor) { range.sql += ' AND (recorded_at_ms < ? OR (recorded_at_ms = ? AND id < ?))'; range.values.push(cursor.lastTime, cursor.lastTime); }
     const values: (number | string)[] = [...range.values]; if (cursor) values.push(cursor.lastId);
-    const rows = db.prepare(`SELECT id,name,net_id,recorded_at_ms FROM visits WHERE ${range.sql} ORDER BY recorded_at_ms DESC,id DESC LIMIT ?`).all(...values, query.limit + 1) as Row[];
+    const rows = db.prepare(`SELECT id,name,net_id,recorded_at_ms,EXISTS(SELECT 1 FROM visit_photos p WHERE p.visit_id=visits.id AND NOT EXISTS(SELECT 1 FROM visit_photo_revocations r WHERE r.visit_id=visits.id)) AS photo_available FROM visits WHERE ${range.sql} ORDER BY recorded_at_ms DESC,id DESC LIMIT ?`).all(...values, query.limit + 1) as Row[];
     const visible = rows.slice(0, query.limit), last = visible.at(-1);
     return { items: visible.map(record), snapshotAt: new Date(snapshot).toISOString(), timeZone: 'America/Chicago' as const, retentionDays: 30 as const, from: query.from ?? null, to: query.to ?? null,
       nextCursor: rows.length > query.limit && last ? encode({ v: 1, issued: snapshot, snapshot, highWater, lastTime: last.recorded_at_ms, lastId: last.id, filter: filterHash(query) }, secret) : null };

@@ -19,7 +19,7 @@ export const historyQuerySchema = z.strictObject({ ...dateFields,
   limit: z.string().regex(/^[1-9]\d?$/).optional().transform(value => Number(value ?? '25')).pipe(z.number().int().min(1).max(50)),
   cursor: opaqueCursor.optional(),
 }).refine(validRange);
-export const historyRecordSchema = z.strictObject({ visitId: z.uuid(), name: displayNameSchema, netId: netIdSchema, recordedAt: z.iso.datetime(), selfReported: z.literal(true) });
+export const historyRecordSchema = z.strictObject({ visitId: z.uuid(), name: displayNameSchema, netId: netIdSchema, recordedAt: z.iso.datetime(), selfReported: z.literal(true), photoAvailable: z.boolean().optional() });
 export const historyResponseSchema = z.strictObject({ requestId: requestIdSchema, items: z.array(historyRecordSchema).max(50),
   nextCursor: opaqueCursor.nullable(), snapshotAt: z.iso.datetime(), timeZone: z.literal('America/Chicago'), retentionDays: z.literal(30),
   from: calendarDateSchema.nullable(), to: calendarDateSchema.nullable(),
