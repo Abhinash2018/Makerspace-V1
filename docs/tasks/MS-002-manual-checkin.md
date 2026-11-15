@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Local implementation and acceptance complete; final Git handoff in progress, remote CI/Linux unrun |
+| Status | Done locally — squash `bbd3fa0d` on local main; remote CI/Linux unrun |
 | Branch | `feat/MS-002-manual-checkin` |
 | Owner | Abinash Ghimire; Codex implements within the active request |
 | Dependencies | MS-001 locally accepted and squash-merged as `c616a00` |
@@ -168,5 +168,7 @@ Dependency completion record: MS-001's permanent task file now records its actua
 Final local rebase/squash follows after the documentation groups. Preserve all development commits on the task branch; main receives one task commit. Record its actual SHA when the next task begins rather than fabricating a future value here.
 
 Workspace guide checkpoint: `local/README.md` now describes manual check-in/cleanup/migration, attendance ownership, native erasable TypeScript and the 80-test inventory, with links to the operator runbook and task evidence. This documentation-only group changes no verified runtime behavior.
+
+Dependency handoff recorded when MS-003 began: final fetch kept remote main at `ccf3c34`; the clean-worktree rebase at `16c6ff8` was already current and changed no tree/commit. Local main squash `bbd3fa0d` contains exactly 37 reviewed task paths and equals the verified feature tree. All 19 grouped commits remain on `feat/MS-002-manual-checkin`. Final audit resolved 42 local links/7 anchors and preserved the original unrelated staging. No push, operator DB migration or deployment occurred.
 
 Design references consulted: official [SQLite transactions](https://www.sqlite.org/lang_transaction.html), [table constraints](https://www.sqlite.org/lang_createtable.html), and [secure-delete pragma](https://www.sqlite.org/pragma.html#pragma_secure_delete). These guide implementation, not evidence of secure physical erasure or institutional policy approval.

@@ -1,5 +1,16 @@
 {
-  "name": "@makerspace/knowledge", "private": true, "version": "0.0.0", "type": "module",
-  "scripts": { "start": "node index.ts", "db:migrate": "node database.ts --migrate", "test": "vitest run .", "ollama:probe": "node probe.ts" },
-  "dependencies": { "better-sqlite3": "12.11.1" }
+  "name": "@makerspace/knowledge",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.ts",
+    "db:migrate": "node database.ts --migrate",
+    "test": "vitest run .",
+    "ollama:probe": "node probe.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "12.11.1",
+    "pdfjs-dist": "6.5.438"
+  }
 }
