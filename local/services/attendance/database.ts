@@ -2,9 +2,10 @@ import { lstatSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { checkRuntimePath, loadConfiguration } from '../../packages/config/index.mjs';
+import { photoSchema, photoColumns } from './photo-schema.ts';
 
 const owner = 'attendance-foundation';
-const migrationNames = [owner, 'attendance-manual-visits'];
+const migrationNames = [owner, 'attendance-manual-visits', 'attendance-consented-photos'];
 const applicationId = 1297301505;
 function filename(directory: string) {
   checkRuntimePath(path.parse(path.resolve(directory)).root, path.resolve(directory));
@@ -16,14 +17,19 @@ function filename(directory: string) {
 function schemaVersion(db: Database.Database) {
   const rows = db.prepare('SELECT version, name FROM schema_migrations ORDER BY version').all() as { version: number; name: string }[];
   const version = db.pragma('user_version', { simple: true }) as number;
-  if (db.pragma('application_id', { simple: true }) !== applicationId || ![1, 2].includes(version)
+  if (db.pragma('application_id', { simple: true }) !== applicationId || ![1, 2, 3].includes(version)
     || rows.length !== version || rows.some((row, index) => row.version !== index + 1 || row.name !== migrationNames[index])) throw new Error('migrations_required');
   const objects = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY name").all() as { name: string }[];
-  const expected = version === 1 ? ['schema_migrations'] : ['schema_migrations', 'visits', 'visits_recorded_at'];
+  const expected = (version === 1 ? ['schema_migrations'] : version === 2 ? ['schema_migrations', 'visits', 'visits_recorded_at']
+    : ['schema_migrations', 'visits', 'visits_recorded_at', 'visits_photo_cleanup', ...Object.keys(photoColumns)]).sort();
   if (objects.map(row => row.name).join(',') !== expected.join(',')) throw new Error('migrations_required');
-  if (version === 2) {
+  if (version >= 2) {
     const columns = db.prepare('PRAGMA table_info(visits)').all() as { name: string; type: string }[];
     if (columns.map(row => `${row.name}:${row.type}`).join(',') !== 'id:TEXT,name:TEXT,net_id:TEXT,recorded_at_ms:INTEGER,self_reported:INTEGER,attempt_digest:TEXT,payload_digest:TEXT') throw new Error('migrations_required');
+  }
+  if (version === 3) for (const [table, expectedColumns] of Object.entries(photoColumns)) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string; type: string }[];
+    if (columns.map(row => `${row.name}:${row.type}`).join(',') !== expectedColumns) throw new Error('migrations_required');
   }
   return version;
 }
@@ -33,6 +39,7 @@ export function migrate(directory: string) {
   const db = new Database(file);
   try {
     db.pragma('busy_timeout = 1000');
+    db.pragma('foreign_keys = ON');
     db.transaction(() => {
       const objects = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
       if (objects.length === 0 && db.pragma('application_id', { simple: true }) === 0 && db.pragma('user_version', { simple: true }) === 0) {
@@ -54,7 +61,12 @@ export function migrate(directory: string) {
         db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(2, migrationNames[1]!, new Date().toISOString());
         db.pragma('user_version = 2');
       }
-      if (schemaVersion(db) !== 2) throw new Error('migrations_required');
+      if (schemaVersion(db) === 2) {
+        db.exec(photoSchema);
+        db.prepare('INSERT INTO schema_migrations (version,name,applied_at) VALUES (?,?,?)').run(3, migrationNames[2]!, new Date().toISOString());
+        db.pragma('user_version = 3');
+      }
+      if (schemaVersion(db) !== 3) throw new Error('migrations_required');
     }).immediate();
     db.pragma('journal_mode = WAL');
     db.pragma('secure_delete = ON');
@@ -65,7 +77,7 @@ export function readiness(directory: string): { ready: boolean; code: 'ready' | 
   try {
     db = new Database(filename(directory), { fileMustExist: true });
     db.pragma('busy_timeout = 1000');
-    if (schemaVersion(db) !== 2) return { ready: false, code: 'migrations_required' };
+    if (schemaVersion(db) !== 3) return { ready: false, code: 'migrations_required' };
     return { ready: true, code: 'ready' };
   } catch { return { ready: false, code: db ? 'migrations_required' : 'db_unavailable' }; }
   finally { db?.close(); }
@@ -75,7 +87,8 @@ export function openAttendance(directory: string) {
   try {
     db.pragma('busy_timeout = 1000');
     db.pragma('secure_delete = ON');
-    if (schemaVersion(db) !== 2) throw new Error('migrations_required');
+    db.pragma('foreign_keys = ON');
+    if (schemaVersion(db) !== 3) throw new Error('migrations_required');
     return db;
   } catch (error) { db.close(); throw error; }
 }
