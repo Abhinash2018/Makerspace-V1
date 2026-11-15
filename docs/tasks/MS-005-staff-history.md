@@ -42,8 +42,8 @@ Attendance owns history SQL, 30-day eligibility, date conversion, signed cursors
 | 1 | Specification/dependency handoff | Baseline/docs/source audit | Done `677265c` |
 | 2 | Strict history/export contracts | Query/date/row/body/extra bounds | Done `5abd528` |
 | 3 | Attendance history/date/cursor/CSV | Retention/DST/ties/snapshot/tamper/expiry/500-row/formula cases | Done `6e43678` |
-| 4 | Service/gateway routes | Staff/Origin/CSRF/token/rate/upstream/disconnect/expiry | Verified; focused API commit follows |
-| 5 | Transient staff view/download | Native and desktop/mobile browser flows, logout/expiry/data clearing | Planned |
+| 4 | Service/gateway routes | Staff/Origin/CSRF/token/rate/upstream/disconnect/expiry | Done `688b3e8` |
+| 5 | Transient staff view/download | Native and desktop/mobile browser flows, logout/expiry/data clearing | Browser/visual verification passed; focused UI commit follows |
 | 6 | Runbook/acceptance/squash | Regressions/static/build, source/staging audit, rebase/squash/push | Planned |
 
 ## Acceptance criteria
@@ -57,6 +57,10 @@ Attendance owns history SQL, 30-day eligibility, date conversion, signed cursors
 - [ ] Actual checks/screenshots/runbook and final source audit support acceptance; main squash preserves history and pushes only reviewed source.
 
 ## Evidence and operational impact
+
+Final UI checkpoint — 14 November 2026: full five-flow Chromium regression passed in 43.1 seconds after mobile refinement. Reviewed final desktop table/mobile labelled rows with all fields visible and no page overflow. Staff history uses one volatile page, opaque cursor stack and explicit applied filters; no automatic row polling. Logout/reset access updates immediately unmount the component; cleanup aborts work, clears the page and revokes blob URLs/timers. Stale async errors are epoch-guarded as well as successful replies. Actual downloaded synthetic CSV bytes passed formula/quote checks. Full build/strict typecheck and lint passed on this source; tooling/unit 16 + 92 passed. Final native suite remains separate.
+
+UI/regression checkpoint — 14 November 2026: the production staff browser flow passed sign-in, 25/2-row pagination, real CSV download/formula bytes, date-filter empty state, logout, visitor reset and simulated expiry, with empty browser storage/no external requests/page errors. Initial desktop/mobile screenshots were reviewed; mobile's horizontal table was refined to one labelled row layout, preserving table markup/column headers. Full strict typecheck/build and lint pass after this refinement; five-flow browser regression is running. Standalone tooling/unit suite passed 16 + 92 cases across 39 Vitest files; no assertions/timeouts disabled. New browser test itself is included in the latest typecheck. No actual Excel/Safari/iPad/Linux or new OS-isolation claim.
 
 HTTP/native checkpoint — 14 November 2026: three gateway history tests plus four existing attendance route tests passed, including internal token enforcement/strict filters, staff-only role, export CSRF/Origin, duplicate query refusal, metadata stripping, fixed errors, malformed/oversized/redirect/filter/request-ID refusal, separate read/export limits and a pending read that returns no identities after staff expiry. A real separate-process sign-in/history/export/logout test passed (5.29 seconds), with 36 original visits, new-arrival snapshot exclusion, 37-row formula-neutralized export, kiosk/direct-token denial and AI absent. Full strict typecheck/production build and full lint pass for current production code. UI browser test is running separately; no real credentials/records/DB were read.
 
