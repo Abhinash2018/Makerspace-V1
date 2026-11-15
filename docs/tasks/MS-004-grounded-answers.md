@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — specification checkpoint |
+| Status | Done — Windows acceptance complete; final squash handoff follows |
 | Branch | `feat/MS-004-grounded-answers` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
 | Dependencies | MS-001, MS-003; local/remote main `32a45cff` |
@@ -40,22 +40,32 @@ Knowledge owns retrieval, selected model identity, queue/concurrency and answer 
 | --- | --- | --- | --- |
 | 1 | Specification/dependency handoff | Baseline/source/docs audit | Done `7def17b` |
 | 2 | Strict answer contracts | Bounds, normalization, hostile input and response schemas | Done `c36761e` |
-| 3 | Retrieval and constrained local chat | Model compatibility, thresholds, injected/invalid citations, failure/cancellation/digest cases | Done `94e43e6`; quantity hardening pending |
+| 3 | Retrieval and constrained local chat | Model compatibility, thresholds, injected/invalid citations, failure/cancellation/digest cases | Done `94e43e6`; quantity/evaluation fix `d628ad6` |
 | 4 | Internal route/gateway authorization | Role/CSRF/token/rate/capacity, disconnect and response validation | Done `163d923` |
-| 5 | Transient kiosk questions | Browser success/uncertainty/cancel/reset/expiry, mobile/desktop review | Implemented/tested; final screenshots/commit pending |
-| 6 | Evaluation/runbook/handoff | Real synthetic installed CPU models, known supported/unsupported/injected questions, regressions, source audit/rebase/squash/push | In progress; expanded evaluation rerun pending |
+| 5 | Transient kiosk questions | Browser success/uncertainty/cancel/reset/expiry, mobile/desktop review | Done `8c7ba62` |
+| 6 | Evaluation/runbook/handoff | Real synthetic installed CPU models, known supported/unsupported/injected questions, regressions, source audit/rebase/squash/push | Six-case real evaluation passed; four-worker test resource bound `cbd3464`; runbook/audit finalizing |
 
 ## Acceptance criteria
 
-- [ ] Known synthetic questions select correct approved page evidence and immutable citations; unsupported questions refer to staff.
-- [ ] Missing/incomplete/changed-model indexes cannot silently mix vectors or answer from model prior knowledge.
-- [ ] Unretrieved IDs, invented/modified quotes, spoofed citation metadata, oversized output and injection attempts cannot produce unsupported quoted answers or execute actions.
-- [ ] Strict authenticated contracts, role/CSRF/origin/rate limits, one-active/no-queue capacity, bounded work and cancellation are tested.
-- [ ] UI plain text and transient data clear on cancel/back/reset/expiry, with useful failure/uncertainty states and accessible responsive layout.
-- [ ] No identities from attendance/auth, prompts, source paths or model output enter logs/persistence; attendance remains usable without knowledge/Ollama.
-- [ ] Automated checks, real installed-model evaluation, actual limits and operator setup are documented; preserve unrelated staging/history; rebase/squash/push only verified source.
+- [x] Known synthetic questions select correct approved page evidence and immutable citations; unsupported questions refer to staff.
+- [x] Missing/incomplete/changed-model indexes cannot silently mix vectors or answer from model prior knowledge.
+- [x] Unretrieved IDs, invented/modified quotes, spoofed citation metadata, oversized output and injection attempts cannot produce unsupported quoted answers or execute actions.
+- [x] Strict authenticated contracts, role/CSRF/origin/rate limits, one-active/no-queue capacity, bounded work and cancellation are tested.
+- [x] UI plain text and transient data clear on cancel/back/reset/expiry, with useful failure/uncertainty states and accessible responsive layout.
+- [x] No identities from attendance/auth, prompts, source paths or model output enter logs/persistence; attendance remains usable without knowledge/Ollama.
+- [x] Automated checks, real installed-model evaluation, actual limits and operator setup are documented; preserve unrelated staging/history; rebase/squash/push only verified source (audit below).
 
 ## Evidence
+
+| Check | Actual result | Limits |
+| --- | --- | --- |
+| `pnpm test` | 16 tooling + 84 unit tests passed across 36 Vitest files | Four concurrent file workers; explicit concurrency tests retained; earlier uncapped timeout documented below |
+| `pnpm test:integration` | Seven tests passed across six files, 46.39 seconds | Native Node services/fake loopback models, disposable synthetic databases |
+| `pnpm test:e2e` | Four flows passed, 40.8 seconds | Built production UI, Chromium; external browser requests blocked; desktop/mobile screenshots inspected |
+| `pnpm lint`; `pnpm build` | Passed; build includes full strict typecheck | Final runner-cap config separately linted/tested after build; no production changes afterward |
+| `pnpm answers:acceptance --cpu` | Six real synthetic cases passed in 33,063 ms | Exact installed model digests below; no real corpus, model download or fresh OS-isolation claim |
+| Frozen install | `pnpm install --frozen-lockfile --offline` passed with unchanged lockfile | Existing Zod resolution reused; original installed/staged dependency tree untouched |
+| Source/docs/staging | Final audit appended below | No operator DB/settings or real documents read; Linux/remote CI/Safari/iPad and fresh administrator-only OS isolation unrun |
 
 Runner contention — 14 November 2026: the expanded standalone full unit suite ran 36 files concurrently and hit the existing MS-003 ingestion test's 15-second budget (83 passed/one timed out). The new suites/focused ingestion checks had passed; no production deadline or test assertion was changed. Added an explicit four-worker file-level runner cap, preserving isolation and the SQLite/password/PDF concurrency checks inside tests. This bounds peak CPU/native-worker/scrypt allocation for developer/CI runs; full rerun follows after the current browser suite. Failure evidence is retained rather than counted as a pass.
 
@@ -81,6 +91,8 @@ Constrained excerpts sacrifice fluent paraphrasing to make source support mechan
 
 ## Completion record
 
+Final pre-squash audit — 14 November 2026: `task-source-audit.mjs 32a45cff` passed: 31 committed task paths, 27 runtime/test/config paths byte-equal to the verification workspace, 67 Markdown links/12 anchors valid, original unrelated index preserved. Documentation-only runbook additions raise the final count; rerun after commit. Source and branch history contain no ignored/private/runtime outputs. All seven native-process regressions passed on the final runtime source after quantity hardening, alongside 84 unit/16 tooling/four Chromium checks, lint/build/typecheck and the six-case real CPU evaluation. Test runner cap is separately linted/tested; no timeout/assertion was relaxed. Final main SHA is recorded only after creation.
+
 Final browser/unit checkpoint — 14 November 2026: all four production Chromium flows passed, including the existing authentication/check-in/service-loss regressions and new evidence/uncertainty/unavailability/cancel/back/expiry flow. External browser requests were blocked and browser storage remained empty; literal source HTML rendered as text. Reviewed final desktop and 390-pixel mobile evidence screenshots after button spacing refinement, with no overflow. Full standalone unit/tooling rerun with four concurrent test workers passed all 84 + 16 cases; test timeouts and explicit internal concurrency checks are unchanged. The final seven-process suite is running separately. No actual Safari/iPad/Linux or new OS firewall-isolation pass.
 
 Quantity/evaluation group: six-case real installed CPU evaluation and five focused engine/chat/validator checks passed after the relevance fix. Full strict typecheck/production build and lint passed on the same source, including current browser code. Manual evaluation is opt-in through `answers:acceptance --cpu`, uses disposable synthetic data and prints bounded metadata only. This fixes the observed missing-duration case without treating the model's confidence as evidence.
@@ -89,4 +101,4 @@ HTTP group verification is complete: five focused gateway/knowledge tests passed
 
 First groups: specification `7def17b`, strict contracts `c36761e`; both pushed within owner authorization. Knowledge engine preparation passed five focused checks, focused lint, frozen offline install and full strict typecheck. Whole-sentence-boundary validation additionally rejects a source fragment that drops its preceding qualifier; it does not claim full factual/relevance verification. Real evaluation and public routes/UI remain subsequent groups.
 
-Fill actual changed files, checks, model digests/timings, limits and final source audit as groups finish. Next: MS-005 staff history after acceptance; continue remaining dependency-ordered backlog under standing owner authorization.
+Changed paths: strict answer contracts/fixed errors; knowledge retrieval/chat/quote/quantity guards and internal route; gateway authorized question route; transient kiosk form/styles; unit/native/browser/manual evaluation fixtures; explicit existing Zod declaration, runner concurrency bound and operator/architecture/task guides. No database migration. Runtime source is complete through `8c7ba62`; final audit/squash SHA is recorded after creation. Limitations: relevance/sentence/English quantity heuristics are conservative, not general factual proof; real-corpus/operator policy approval and broader adversarial evaluation remain necessary. Windows checked in an isolated frozen-installed copy; original checkout dependencies remain incomplete. No deployment, actual Safari/iPad/Linux, fresh OS firewall-isolation pass or real student data. Next: MS-005 staff history, then dependency-ordered remaining backlog under standing owner authorization.

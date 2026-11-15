@@ -2,6 +2,8 @@
 
 **MS-000** through **MS-003** have Windows acceptance evidence and are pushed on main. Squashes: MS-001 `c616a00` (14 branch commits retained), MS-002 `bbd3fa0d` (19 retained), MS-003 `32a45cff` (12 retained). Latest checks cover 100 automated cases and a real synthetic CPU embedding/index probe. On 13–14 November 2026 the owner authorized finishing tasks and continuing in dependency order, separate branches, grouped commits, rebase and one main squash/task, plus verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Active task: **MS-004**. Later rows need full specifications before implementation. Deployment remains separate; Linux/Safari/iPad and a fresh administrator-only OS-isolation test remain unrun.
 
+MS-004 now has Windows acceptance evidence for 111 automated checks and six real synthetic CPU-model evaluation cases; it is at its final audit/squash handoff, with grouped commits pushed through the reviewed kiosk screen. MS-005 protected staff history follows. The real-corpus/heuristic limits and observed evaluation failure/fix are recorded in its task file.
+
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |
 | [MS-000](MS-000-foundation.md) | `chore/MS-000-local-foundation` | Local microservice skeleton, kiosk shell, Ollama diagnostics, CI | None |

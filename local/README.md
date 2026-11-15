@@ -51,7 +51,7 @@ Playwright browser installation is a one-time development prerequisite. On Linux
 
 ## Approved local documents
 
-MS-003 adds explicit `pnpm knowledge configure`, `ingest --approved`, `status` and `reindex` commands. Knowledge owns private PDFs and versioned local embeddings, independently of attendance. No files are imported automatically and no visitor questions/uploads are enabled by ingestion. Read the [operator instructions](../docs/LOCAL_SETUP.md#approved-document-ingestion-ms-003) before importing reviewed text PDFs. `pnpm knowledge:acceptance --cpu` is an explicit disposable synthetic check using the already installed embedding model, not part of ordinary runtime startup.
+MS-003 adds explicit `pnpm knowledge configure`, `ingest --approved`, `status` and `reindex` commands. Knowledge owns private PDFs and versioned local embeddings, independently of attendance. No files are imported automatically. Read the [operator instructions](../docs/LOCAL_SETUP.md#approved-document-ingestion-ms-003) before importing reviewed text PDFs. MS-004 enables transient kiosk questions using validated source excerpts/citations, with uncertainty and cancellation; [answer setup](../docs/LOCAL_SETUP.md#grounded-document-questions-ms-004) explains model/configuration/quality limits. No public upload exists. `pnpm knowledge:acceptance --cpu` and `pnpm answers:acceptance --cpu` explicitly run disposable synthetic installed-model checks; they never run at application startup. Latest [MS-004 evidence](../docs/tasks/MS-004-grounded-answers.md) records all 111 automated cases and six real-model evaluation cases separately.
 
 ## Local configuration
 
