@@ -71,4 +71,6 @@ Constrained excerpts sacrifice fluent paraphrasing to make source support mechan
 
 ## Completion record
 
+First groups: specification `7def17b`, strict contracts `c36761e`; both pushed within owner authorization. Knowledge engine preparation passed five focused checks, focused lint, frozen offline install and full strict typecheck. Whole-sentence-boundary validation additionally rejects a source fragment that drops its preceding qualifier; it does not claim full factual/relevance verification. Real evaluation and public routes/UI remain subsequent groups.
+
 Fill actual changed files, checks, model digests/timings, limits and final source audit as groups finish. Next: MS-005 staff history after acceptance; continue remaining dependency-ordered backlog under standing owner authorization.
