@@ -4,7 +4,7 @@ Status: MS-000 foundation is implemented and locally verified on Windows, includ
 
 MS-001 adds locally verified gateway browser access controls: kiosk/staff sessions, private credential provisioning, CSRF/Origin/role checks and bounded login/API work. See [MS-001](../tasks/MS-001-access-controls.md) for contracts and evidence. No attendance or document feature is enabled by access controls alone.
 
-MS-002 now adds locally verified manual check-in, transactional retry handling and retention in attendance. The kiosk works without knowledge/Ollama and never claims a visit was saved before storage confirms it. See [MS-002](../tasks/MS-002-manual-checkin.md). Document answers, staff history, photos and LAN rollout remain separate tasks.
+MS-002 adds verified manual check-in/retries/retention; MS-003/MS-004 add approved local document evidence; MS-005 adds protected staff history/export. Attendance and staff history work without knowledge/Ollama and never claim a visit was saved before storage confirms it. See [MS-002](../tasks/MS-002-manual-checkin.md) and the later task records. Photos and LAN rollout remain separate tasks.
 
 ## Decision and tradeoff
 
@@ -39,7 +39,7 @@ MS-000 created metadata-only service databases and explicit Ollama diagnostics. 
 | --- | --- | --- | --- |
 | Kiosk | Accessible shell and system status | Check-in and Ask screens; consent and captions | Transient UI state only; no persistent identity on kiosk |
 | Gateway | Same-origin UI/API, status, kiosk/staff sessions, CSRF, authorization and limits | Authorized feature routing | Private staff hash file and bounded process-memory sessions |
-| Attendance | Health/readiness, self-reported visits, idempotency and retention | Staff history and consented visit photos | Attendance DB; private photo directory added later |
+| Attendance | Health/readiness, self-reported visits, idempotency/retention, protected staff history/export | Consented visit photos | Attendance DB; private photo directory added later |
 | Knowledge | Health/readiness, Ollama adapter and diagnostics | Approved document ingestion, retrieval, answer orchestration and citations | Knowledge DB, document files and derived index |
 | Ollama | Local inference runtime | Chat generation and local text embeddings | Downloaded model files; no authoritative attendance data |
 | Face service, later | Not scaffolded or running now | Opt-in enrollment, template matching, expiry/revocation | Separate encrypted template store |
@@ -96,6 +96,12 @@ Kiosk-role `POST /api/v1/checkin` requires Origin/CSRF and a strict name/NetID/U
 Migration 2 appends a strict visits table and timestamp index after the known foundation migration. Startup never migrates or replaces a missing DB. Attendance deletes rows at/before the 30-day project cutoff at startup, hourly, before writes and through the explicit cleanup CLI. Failed maintenance reports a fixed redacted event and unavailable readiness. Later history/photo reads must enforce expiry independently of cleanup. Secure-delete is enabled on owned connections; logical deletion does not guarantee erasure from WAL/SSDs/backups. No institution-approved retention policy is implied.
 
 Gateway bounds check-in to ten attempts/minute, fixed loopback paths, two seconds and 4096 response bytes, validating status/body/request ID with no automatic retries. The browser keeps an uncertain attempt only in component memory and explicitly retries its same UUID; a new session/reset clears identity/attempt state. The same request may commit despite a lost reply, so failure feedback says confirmation is uncertain. API/network failure never creates a persistent browser queue or fake success.
+
+### Staff history contract (MS-005)
+
+Staff-role gateway `GET /api/v1/staff/visits` and CSRF/Origin-protected `POST /api/v1/staff/visits/export` call only token-authenticated attendance contracts. Attendance owns SQL, read-time 30-day expiry, Chicago/DST date bounds, HMAC ten-minute cursors and CSV formatting. Descending time/UUID keyset pages carry a snapshot plus rowid high-water mark, so equal-millisecond new inserts cannot enter an existing sequence. No cursor identity data or SQL crosses service boundaries. Gateway bounds work/bytes/rates, strips browser headers and rechecks staff access after the upstream response before releasing identities.
+
+Exports are explicit, capped at 500 matches, quoted UTF-8 CSV with formula-leading text neutralization; over-limit exports fail rather than truncate. No export file is stored server-side. Downloaded copies require separate private access/retention and are not a universal spreadsheet-safe/lossless import format. Staff rows/cursors live only in mounted UI memory; logout/reset/expiry clears/aborts work and revokes blob URLs. The service remains independent of AI. See [MS-005](../tasks/MS-005-staff-history.md) and [runbook](../LOCAL_SETUP.md#staff-visit-history-and-export-ms-005) for exact contracts/checks/limitations. No schema/dependency change.
 
 ### Bootstrap configuration contract (MS-000 group 2b)
 

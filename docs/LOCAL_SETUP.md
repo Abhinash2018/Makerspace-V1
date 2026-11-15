@@ -122,6 +122,20 @@ Question limits are 500 characters, six attempts/minute per gateway and one acti
 
 `pnpm answers:acceptance --cpu` runs an explicit disposable synthetic evaluation using the two already installed models. It records case IDs/status/citation pages/model digests/timings, never prompt/source/generated bodies. Automated regression providers are fake loopback servers and do not establish real model quality. See [MS-004 evidence](tasks/MS-004-grounded-answers.md) for actual results, limits and unrun platforms. OS-isolated offline tests require administrator rights on this Windows host; a loopback real-model pass alone is not labelled a firewall-isolation pass.
 
+## Staff visit history and export (MS-005)
+
+Sign in with the explicitly provisioned local staff credential. Visit history appears only for a staff session, independently of AI/model availability. Records are self-reported names/NetIDs, not university-verified identity or current occupancy. No migration/dependency change is needed beyond attendance's existing MS-002 migration 2. The development tests do not read your real records or provision a real credential.
+
+Leave both dates blank for all retained visits, or choose both inclusive Central-time dates and Apply dates. Input dates cover at most 30 calendar days within 2000–2099; display/export conversions use America/Chicago, including daylight-saving changes. Read-time filtering always excludes visits at/before the current UTC 30-day cutoff, even if scheduled cleanup has not run. Physical cleanup/backups still have separate lifecycle requirements.
+
+Pages show 25 visits, newest timestamp/UUID first. Next/Previous use a signed ten-minute cursor bound to the filter/page size and a snapshot/row high-water mark, so new arrivals (including equal-millisecond inserts) do not disturb an existing page sequence. Refresh history starts a fresh snapshot. If a page expires, apply dates/refresh explicitly. Reads are bounded to 30/minute per gateway, exports to three/minute, within the general API quota; no background history polling refreshes staff activity. Staff idle/absolute expiry remains 15 minutes/eight hours.
+
+Export CSV downloads up to 500 currently retained matches for the applied filters, using a new snapshot. More than 500 is an explicit error requiring a narrower date range, never a silent truncated export. The file contains names, NetIDs, opaque visit IDs, UTC and offset-bearing Central timestamps, and self-reported labels. No export file is stored on the server. Keep the downloaded private copy access-controlled and apply its own retention; DB cleanup/logout cannot retract a downloaded file.
+
+CSV is UTF-8 with a BOM, quoted/escaped fields and tab-prefixed formula-leading text, including full-width variants. It is intended for human spreadsheet viewing and is not a lossless database import. No universal spreadsheet/save/reopen safety guarantee exists; actual Excel/Sheets behavior is unrun. See the [task's OWASP reference and byte tests](tasks/MS-005-staff-history.md). Do not remove prefixes and assume the content is safe to execute as formulas.
+
+Logout, Begin/new visitor, expiry and access changes unmount history, abort pending work and revoke transient download URLs. No names/NetIDs are put into browser storage or knowledge prompts. Mobile shows labelled visit rows; desktop shows a table. Gateway rechecks staff access after attendance responds, validates bounded token-authenticated HTTP envelopes and forwards no cookie/CSRF/browser identity to attendance. A compromised local account/service token remains outside this initial security boundary; LAN exposure is still a separate task.
+
 ## Offline verification
 
 1. Complete dependency/model installation and production build while setup access is available.
