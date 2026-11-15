@@ -138,6 +138,8 @@ Migration 2 is append-only; reverting code does not remove versions/vectors/file
 
 ## Completion record
 
+Completed squash handoff — 14 November 2026: main commit `32a45cff4f83d43ec48a0cc97f76fcd1ccabe81b` was created and pushed as a fast-forward to the explicitly approved repository. Clean-worktree rebase was already current; the squash index exactly equaled the feature tree over 38 intentional paths, with no private outputs. Twelve grouped commits remain on `feat/MS-003-document-ingestion` through `271cad3d`; no force push or history replacement. Final link audit passed 56 links/ten anchors and original staging preservation. Next branch `feat/MS-004-grounded-answers` starts from this accepted main.
+
 Final pre-squash audit — 14 November 2026: `task-source-audit.mjs bbd3fa0d` passed on branch `feat/MS-003-document-ingestion`: 34 committed task paths, 29 runtime/test/config paths byte-equal to the verification copy, 54 local Markdown links/nine heading anchors valid, original unrelated index preserved. Runbook-only additions increase the final path/link count; rerun before squash. Exact-path whitespace/history checks passed. Last code `2efbb3c` passed full standalone tooling/unit, lint/build/typecheck, focused native operator and focused integrity tests. Full six-process/three-browser regression passed before the final completeness-only fix; unchanged UI/contracts were not needlessly retested. No ignored/private runtime files are committed.
 
 - Changed paths: knowledge settings/PDF worker/chunker/embedding adapter/schema/repository/source/ingestion/commands; synthetic fixtures/unit/native/manual acceptance checks; manifest/lockfile; architecture/setup/workspace/Git/task documentation.
