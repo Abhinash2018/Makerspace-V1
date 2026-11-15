@@ -8,7 +8,7 @@
 | Dependencies | MS-001; starting from local main after completed MS-002 squash `bbd3fa0d` |
 | Task path | `docs/tasks/MS-003-document-ingestion.md` |
 | Intended squash commit | `feat(MS-003): ingest approved PDFs into a versioned local index` |
-| PR/publication | None; no push/deployment authorized |
+| PR/publication | Owner requested pushes on 14 November 2026; exact-destination approval pending after automatic review; deployment separate |
 
 ## Problem and outcome
 
@@ -106,6 +106,10 @@ Dependency/runtime handoff — 14 November 2026: MS-002's permanent task record 
 Knowledge settings checkpoint — 14 November 2026: `settings.ts` owns a bounded strict `embedding-settings.json` beneath knowledge runtime storage, with a disabled default when absent. Explicit configuration exclusively creates it with an installed model selector, CPU mode and model-specific retrieval/document prefixes; it never overwrites an existing file or changes the shared `.env` contract. Two synthetic tests cover exclusive preservation, immutable settings, model/prefix/key bounds, malformed/oversized files and junction refusal. Focused lint and full typecheck pass in the verification copy. Prefix identity is recorded for later index compatibility; no document/model call is made by settings loading. Windows ACL inheritance remains unchanged.
 
 ## Contributor explanation
+
+Source/orchestration checkpoint — 14 November 2026: regular local-file reads are byte-bounded and reject UNC/URLs/junctions; digest-only private copies are exclusively written and fsynced, with existing content verified rather than overwritten. Three source/ingestion tests pass, including explicit approval before storage/model work, duplicate import, model failure preserving evidence, atomic failed/successful all-corpus reindex, corruption refusal, cancellation and concurrent preparation conflicts. An initial source test caught use of a directory-only guard on the file itself; parent components and the leaf are now checked separately. Full unit/tooling run passed 73 + 16 tests before the subsequent startup/CLI additions. Full lint/typecheck now pass after correcting a duplicate output property in the uncommitted CLI group; no check was disabled. A crash before DB commit can leave an inactive private orphan, documented for MS-010 cleanup review.
+
+Push request — 14 November 2026: owner requested pushing code as commits are made and retaining squash workflow. Committed-history path audit, original staged-entry preservation and fast-forward ancestry checks passed. Automatic approval review rejected the attempted atomic push because exact destination authorization/trust was unverified. Asked for approval naming `https://github.com/Abhinash2018/Makerspace-V1`; no retry or alternate publication path while pending. Grouped local commits continue. Earlier no-push statements describe earlier authorization.
 
 Repository checkpoint — 14 November 2026: knowledge migration 2 adds strict version/current-pointer/index/membership/chunk tables with foreign keys. Five migration/repository tests pass, including known-foundation upgrade, rerun, unknown ownership/history/layout/future refusal, runtime junction refusal, immutable prior versions, duplicate imports, stale-writer conflicts, all-document transaction rollback, model-bucket incompatibility and version/index quotas. Full lint/typecheck pass. Limits are 50 logical documents, 10 versions/document, four model identities, 5,000 current chunks/index and 20,000 stored chunks total; exhaustion refuses work without deleting history. Float32 vectors retain exact model/digest/prefix/chunker identity; version metadata also records PDF.js 6.5.438. DB transactions run only after model preparation, and retrieval refuses missing current memberships. Operator databases have not been opened or migrated.
 
