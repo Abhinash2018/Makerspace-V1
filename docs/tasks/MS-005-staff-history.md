@@ -39,9 +39,9 @@ Attendance owns history SQL, 30-day eligibility, date conversion, signed cursors
 
 | Group | Outcome | Checks | State |
 | --- | --- | --- | --- |
-| 1 | Specification/dependency handoff | Baseline/docs/source audit | In progress |
-| 2 | Strict history/export contracts | Query/date/row/body/extra bounds | Planned |
-| 3 | Attendance history/date/cursor/CSV | Retention/DST/ties/snapshot/tamper/expiry/500-row/formula cases | Planned |
+| 1 | Specification/dependency handoff | Baseline/docs/source audit | Done `677265c` |
+| 2 | Strict history/export contracts | Query/date/row/body/extra bounds | Done `5abd528` |
+| 3 | Attendance history/date/cursor/CSV | Retention/DST/ties/snapshot/tamper/expiry/500-row/formula cases | Tested; focused repository commit follows |
 | 4 | Service/gateway routes | Staff/Origin/CSRF/token/rate/upstream/disconnect/expiry | Planned |
 | 5 | Transient staff view/download | Native and desktop/mobile browser flows, logout/expiry/data clearing | Planned |
 | 6 | Runbook/acceptance/squash | Regressions/static/build, source/staging audit, rebase/squash/push | Planned |
@@ -57,6 +57,8 @@ Attendance owns history SQL, 30-day eligibility, date conversion, signed cursors
 - [ ] Actual checks/screenshots/runbook and final source audit support acceptance; main squash preserves history and pushes only reviewed source.
 
 ## Evidence and operational impact
+
+Repository group is independently verified by four synthetic repository/date/export tests plus the contract check, full strict typecheck and focused lint. All reads are parameterized and bounded; no migration, cleanup side effect, production record or server-side export file. CSV dangerous text uses quoted tab prefixes including NFKC-detected full-width starts; limitations remain explicit. API authorization/UI are later groups, not implied by repository completion.
 
 Strict contract/static checkpoint — 14 November 2026: five focused checks, full strict workspace typecheck and focused contract/repository lint pass, including the canonical HMAC encoding guard. No dependency or schema changes; no public history route is enabled by this group. The response cursor uses the same bounded wire syntax as subsequent requests; signature verification stays attendance-owned.
 
