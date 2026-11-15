@@ -8,6 +8,7 @@ import { cleanupVisits, recordVisit, VisitFailure } from './visits.ts';
 import { errorBody, logEvent } from '../../packages/observability/index.ts';
 import { registerHistory } from './history-routes.ts';
 import { createPhotoRepository } from './photo-repository.ts';
+import { registerPhotoRoutes } from './photo-routes.ts';
 
 export function createAttendance(config: Configuration, now = Date.now) {
   const app = makeServer({ service: 'attendance', port: config.ports.attendance, token: config.serviceToken, logLevel: config.logLevel });
@@ -15,6 +16,7 @@ export function createAttendance(config: Configuration, now = Date.now) {
   let maintenanceFailed = false;
   let photoMaintenanceFailed = false;
   const photos = createPhotoRepository(config.runtime.attendance, now);
+  registerPhotoRoutes(app, photos, () => { photoMaintenanceFailed = true; logEvent('maintenance_failed', { service: 'attendance' }, config.logLevel); });
   let sweepTimer: ReturnType<typeof setInterval> | undefined;
   function sweep() {
     if (!readiness(config.runtime.attendance).ready) return;
