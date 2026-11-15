@@ -10,6 +10,7 @@ import { recordVisit, cleanupVisits, retentionMs } from './visits.ts';
 import { createPhotoRepository } from './photo-repository.ts';
 import { photoFilename } from './photo-files.ts';
 import { photoConsentVersion, type InternalPhotoUpload } from '../../packages/contracts/photos.ts';
+import { listVisits } from './history.ts';
 
 async function fixture() {
   const root = mkdtempSync(path.join(tmpdir(), 'ms006-photo-'));
@@ -28,6 +29,8 @@ it('binds photo consent to the original visit attempt, preserves exact retry and
   try {
     await expect(f.repo.save({ ...f.input, sessionScope: 'b'.repeat(64) })).rejects.toMatchObject({ code: 'photo_not_found' }); expect(existsSync(path.join(f.root, 'photos'))).toBe(false);
     const saved = await f.repo.save(f.input); expect(saved).toMatchObject({ saved: true, replayed: false, consentVersion: photoConsentVersion });
+    expect(listVisits(f.root, { limit: 25 }, 'b'.repeat(64), f.now()).items[0]).not.toHaveProperty('photoAvailable');
+    expect(listVisits(f.root, { limit: 25, photos: '1' }, 'b'.repeat(64), f.now()).items[0]!.photoAvailable).toBe(true);
     expect(f.repo.read(f.input.visitId)).toMatchObject({ photoId: saved.photoId, width: 64, height: 64, mime: 'image/jpeg' });
     const file = photoFilename(f.root, saved.photoId), preserved = readFileSync(file); writeFileSync(file, 'Synthetic corruption');
     expect(() => f.repo.read(f.input.visitId)).toThrow('photo_unavailable'); writeFileSync(file, preserved);
@@ -36,6 +39,7 @@ it('binds photo consent to the original visit attempt, preserves exact retry and
     expect(() => f.repo.remove({ actor: 'visitor', visitId: f.input.visitId, idempotencyKey: f.input.idempotencyKey, sessionScope: 'b'.repeat(64) })).toThrow('photo_not_found');
     const removed = f.repo.remove({ actor: 'visitor', visitId: f.input.visitId, idempotencyKey: f.input.idempotencyKey, sessionScope: f.input.sessionScope });
     expect(removed).toEqual({ removed: true, pendingCleanup: false }); expect(existsSync(photoFilename(f.root, saved.photoId))).toBe(false);
+    expect(listVisits(f.root, { limit: 25, photos: '1' }, 'b'.repeat(64), f.now()).items[0]!.photoAvailable).toBe(false);
     expect(() => f.repo.read(f.input.visitId)).toThrow('photo_not_found'); await expect(f.repo.save(f.input)).rejects.toMatchObject({ code: 'photo_conflict' });
     expect(f.repo.remove({ actor: 'staff', visitId: f.input.visitId })).toEqual(removed);
   } finally { f.dispose(); }

@@ -31,7 +31,7 @@ function key(secret: string) {
   if (!/^[a-f0-9]{64}$/i.test(secret)) throw new HistoryFailure('history_unavailable');
   return createHash('sha256').update('attendance-history-v1\0').update(secret).digest();
 }
-const filterHash = (query: HistoryQuery) => createHash('sha256').update(JSON.stringify([query.from ?? null, query.to ?? null, query.limit])).digest('hex');
+const filterHash = (query: HistoryQuery) => createHash('sha256').update(JSON.stringify([query.from ?? null, query.to ?? null, query.limit, query.photos ?? null])).digest('hex');
 function encode(cursor: Cursor, secret: string) {
   const payload = Buffer.from(JSON.stringify(cursor)).toString('base64url');
   return `${payload}.${createHmac('sha256', key(secret)).update(payload).digest('base64url')}`;
@@ -80,7 +80,8 @@ export function listVisits(directory: string, input: HistoryQuery, secret: strin
     const range = bounds(query, at, snapshot, highWater);
     if (cursor) { range.sql += ' AND (recorded_at_ms < ? OR (recorded_at_ms = ? AND id < ?))'; range.values.push(cursor.lastTime, cursor.lastTime); }
     const values: (number | string)[] = [...range.values]; if (cursor) values.push(cursor.lastId);
-    const rows = db.prepare(`SELECT id,name,net_id,recorded_at_ms,EXISTS(SELECT 1 FROM visit_photos p WHERE p.visit_id=visits.id AND NOT EXISTS(SELECT 1 FROM visit_photo_revocations r WHERE r.visit_id=visits.id)) AS photo_available FROM visits WHERE ${range.sql} ORDER BY recorded_at_ms DESC,id DESC LIMIT ?`).all(...values, query.limit + 1) as Row[];
+    const metadata = query.photos === '1' ? ',EXISTS(SELECT 1 FROM visit_photos p WHERE p.visit_id=visits.id AND NOT EXISTS(SELECT 1 FROM visit_photo_revocations r WHERE r.visit_id=visits.id)) AS photo_available' : '';
+    const rows = db.prepare(`SELECT id,name,net_id,recorded_at_ms${metadata} FROM visits WHERE ${range.sql} ORDER BY recorded_at_ms DESC,id DESC LIMIT ?`).all(...values, query.limit + 1) as Row[];
     const visible = rows.slice(0, query.limit), last = visible.at(-1);
     return { items: visible.map(record), snapshotAt: new Date(snapshot).toISOString(), timeZone: 'America/Chicago' as const, retentionDays: 30 as const, from: query.from ?? null, to: query.to ?? null,
       nextCursor: rows.length > query.limit && last ? encode({ v: 1, issued: snapshot, snapshot, highWater, lastTime: last.recorded_at_ms, lastId: last.id, filter: filterHash(query) }, secret) : null };

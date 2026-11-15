@@ -27,7 +27,7 @@ export function StaffHistory({ session, onSessionInvalid }: { session: BrowserSe
   }
   async function load(selected: HistoryFilter, cursor: string) {
     const { request, signal } = begin(); setPage(null);
-    const query = new URLSearchParams({ limit: '25', ...(selected.from ? { from: selected.from, to: selected.to! } : {}), ...(cursor ? { cursor } : {}) });
+    const query = new URLSearchParams({ limit: '25', photos: '1', ...(selected.from ? { from: selected.from, to: selected.to! } : {}), ...(cursor ? { cursor } : {}) });
     try {
       const response = await fetch(`/api/v1/staff/visits?${query}`, { signal, credentials: 'same-origin', cache: 'no-store', redirect: 'error' });
       if (!current(request)) return;
