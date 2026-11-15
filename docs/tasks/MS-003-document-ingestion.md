@@ -8,7 +8,7 @@
 | Dependencies | MS-001; starting from local main after completed MS-002 squash `bbd3fa0d` |
 | Task path | `docs/tasks/MS-003-document-ingestion.md` |
 | Intended squash commit | `feat(MS-003): ingest approved PDFs into a versioned local index` |
-| PR/publication | Owner requested pushes on 14 November 2026; exact-destination approval pending after automatic review; deployment separate |
+| PR/publication | Owner explicitly approved pushes to Abhinash2018/Makerspace-V1 on 14 November 2026; deployment separate |
 
 ## Problem and outcome
 
@@ -106,6 +106,10 @@ Dependency/runtime handoff — 14 November 2026: MS-002's permanent task record 
 Knowledge settings checkpoint — 14 November 2026: `settings.ts` owns a bounded strict `embedding-settings.json` beneath knowledge runtime storage, with a disabled default when absent. Explicit configuration exclusively creates it with an installed model selector, CPU mode and model-specific retrieval/document prefixes; it never overwrites an existing file or changes the shared `.env` contract. Two synthetic tests cover exclusive preservation, immutable settings, model/prefix/key bounds, malformed/oversized files and junction refusal. Focused lint and full typecheck pass in the verification copy. Prefix identity is recorded for later index compatibility; no document/model call is made by settings loading. Windows ACL inheritance remains unchanged.
 
 ## Contributor explanation
+
+Publication checkpoint — 14 November 2026: owner explicitly approved the exact repository after automatic review asked for destination confirmation. Retried atomic fast-forward push succeeded: main now includes completed MS-000/MS-001/MS-002 squashes; the MS-001/MS-002 grouped branches and MS-003 through `cb08186` are published. No force push, history replacement, PR message, deployment or private runtime files. The earlier rejection was resolved by explicit destination approval, not a workaround.
+
+Native/real ingestion checkpoint — 14 November 2026: the native subprocess operator test passed configure/status/approval refusal/import/duplicate/reindex/malformed refusal, checking output excludes fixture paths, credentials and document bodies. Explicit `pnpm knowledge:acceptance --cpu` then passed on the installed real EmbeddingGemma model: one synthetic two-page PDF, two stored 768-dimensional chunks, duplicate and reindex preservation, query-vector lookup ranking the expected training page first; 4,802 ms total. It operates solely on a disposable synthetic workspace. Real model quality on institutional documents is not established; this run did not block outbound networking and is not labelled an offline-isolation pass. Full lint, production build/typecheck and 16 tooling + 74 unit tests pass; complete process/browser suites follow.
 
 Source/orchestration checkpoint — 14 November 2026: regular local-file reads are byte-bounded and reject UNC/URLs/junctions; digest-only private copies are exclusively written and fsynced, with existing content verified rather than overwritten. Three source/ingestion tests pass, including explicit approval before storage/model work, duplicate import, model failure preserving evidence, atomic failed/successful all-corpus reindex, corruption refusal, cancellation and concurrent preparation conflicts. An initial source test caught use of a directory-only guard on the file itself; parent components and the leaf are now checked separately. Full unit/tooling run passed 73 + 16 tests before the subsequent startup/CLI additions. Full lint/typecheck now pass after correcting a duplicate output property in the uncommitted CLI group; no check was disabled. A crash before DB commit can leave an inactive private orphan, documented for MS-010 cleanup review.
 

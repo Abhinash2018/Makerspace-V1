@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { expect, it } from 'vitest';
@@ -24,3 +24,13 @@ it('keeps DB readiness independent of AI and protects diagnostics', async () => 
     expect((await app.inject({ method: 'POST', url: '/api/chat', headers })).statusCode).toBe(404);
   } finally { await app.close(); rmSync(root, { recursive: true, force: true }); }
 }, 15000);
+
+it('validates knowledge-owned embedding settings at startup without calling a model', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'ms003-settings-startup-'));
+  try {
+    const config = parseConfiguration({ INTERNAL_SERVICE_TOKEN: 'a'.repeat(64), LOG_LEVEL: 'silent' }, root);
+    mkdirSync(config.runtime.knowledge, { recursive: true });
+    writeFileSync(path.join(config.runtime.knowledge, 'embedding-settings.json'), '{broken-private-setting');
+    expect(() => createKnowledge(config)).toThrow('Embedding settings unavailable');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
