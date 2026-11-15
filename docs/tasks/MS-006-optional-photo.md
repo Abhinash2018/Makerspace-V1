@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — specification checkpoint |
+| Status | In progress — final acceptance and squash audit |
 | Branch | `feat/MS-006-optional-photo` |
 | Dependencies | MS-002, MS-005; main `c43f481693bb6545d249dc4e2dcbb8851696b16b` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
@@ -48,25 +48,33 @@ Consent is literal true plus fixed version `visit-photo-v1`; unchecked/absent/ol
 
 | Group | Outcome | Checks | State |
 | --- | --- | --- | --- |
-| 1 | Specification/dependency handoff | Baseline/docs/source audit | In progress |
-| 2 | Pinned local codec | Native import/real synthetic output/frozen install, lock/policy review | Planned |
-| 3 | Strict photo contracts/owned migration | Consent/proof/body/response/schema/upgrade/foreign checks | Planned |
-| 4 | Codec/private repository/retention | Metadata/size/cancel, proof/replay/conflict/revocation/queue/expiry/paths/quota | Planned |
-| 5 | Authenticated HTTP | Kiosk ownership/staff/CSRF/rate/token/bounds/cancel/integrity | Planned |
-| 6 | Optional camera/staff UI | Synthetic-media consent/skip/capture/retake/save/remove/expiry and private preview | Planned |
-| 7 | Runbook/acceptance/squash | Regressions/static/build/visual/source audit, rebase/squash/push | Planned |
+| 1 | Specification/dependency handoff | Baseline/docs/source audit | Pushed `a9d3a96` |
+| 2 | Pinned local codec | Native import/real synthetic output/frozen install, lock/policy review | Pushed `87168cb` |
+| 3 | Strict photo contracts/owned migration | Consent/proof/body/response/schema/upgrade/foreign checks | Pushed `b78552f` |
+| 4 | Codec/private repository/retention | Metadata/size/cancel, proof/replay/conflict/revocation/queue/expiry/paths/quota | Pushed `e3d10bf`, `febe718`; compatibility `1b29c55` |
+| 5 | Authenticated HTTP | Kiosk ownership/staff/CSRF/rate/token/bounds/cancel/integrity | Pushed `6bcf1c9` |
+| 6 | Optional camera/staff UI | Synthetic-media consent/skip/capture/retake/save/remove/expiry and private preview | All six browser flows/static/build passed; commit prepared |
+| 7 | Runbook/acceptance/squash | Regressions/static/build/visual/source audit, rebase/squash/push | Final audit pending |
 
 ## Acceptance criteria
 
-- [ ] Photo is optional and separate consent precedes camera/storage; no camera/face enrollment on ordinary check-in/skip/denial.
-- [ ] Only the owning active visit proof can attach/withdraw; staff-only view/delete; forged/cross-session/cross-origin/CSRF failures expose no photo.
-- [ ] Real synthetic JPEG decoding/re-encoding strips metadata and enforces byte/pixel/time/capacity/cancellation limits, without cloud or body logging.
-- [ ] Explicit migration/version checks, private path/fsync publication, exact retry/conflict and revocation tombstones preserve data on failure.
-- [ ] Expired/revoked photos are unreadable immediately; owned file cleanup queues/retries survive retention/delete failures without touching unrelated files.
-- [ ] Camera tracks/canvas/proof/photo pixels clear on cancel/finish/reset/expiry; staff preview is private and transient; prior check-in/history/AI remain independent.
+- [x] Photo is optional and separate consent precedes camera/storage; no camera/face enrollment on ordinary check-in/skip/denial.
+- [x] Only the owning active visit proof can attach/withdraw; staff-only view/delete; forged/cross-session/cross-origin/CSRF failures expose no photo.
+- [x] Real synthetic JPEG decoding/re-encoding strips metadata and enforces byte/pixel/time/capacity/cancellation limits, without cloud or body logging.
+- [x] Explicit migration/version checks, private path/fsync publication, exact retry/conflict and revocation tombstones preserve data on failure.
+- [x] Expired/revoked photos are unreadable immediately; owned file cleanup queues/retries survive retention/delete failures without touching unrelated files.
+- [x] Camera tracks/canvas/proof/photo pixels clear on cancel/finish/reset/expiry; staff preview is private and transient; prior check-in/history/AI remain independent.
 - [ ] Actual synthetic-media/native/browser/static/visual/source-audit evidence and operational/platform limits support acceptance; reviewed grouped commits/squash preserve history.
 
 ## Evidence and rollback
+
+Final Windows regression checkpoint — 14 November 2026: all **136 automated checks** passed in the isolated pinned Node 24.22.2/pnpm 10.34.9 source copy: `pnpm test` (16 tooling + 105 unit across 45 files), `pnpm test:integration` (nine real-process cases/eight files, 48.20 seconds), and `pnpm test:e2e` (six Chromium flows, 52.3 seconds). No test/deadline/check was disabled. Existing Vite private `.env` denial is the expected security fixture, not an operator-file read. Final `pnpm build` (including strict workspace typecheck) and `pnpm lint` both passed with the expanded browser fixture. Source audit and squash follow those results.
+
+The new browser flow uses Chromium's explicit synthetic media device/permission flags, with external browser requests blocked. It verifies default skip makes zero media calls, separate unchecked consent, live indicator, capture/retake track stops, lost successful reply/same-image retry, visitor revocation, private staff preview/hide/canvas clearing, logout clearing and staff deletion. Camera denial leaves the third stored visit intact. A deliberately held acquisition released after Skip is stopped without attachment; a later live camera stops on session expiry. Three synthetic visits remain and zero photo rows remain at exit. Browser local/session storage stays empty and no page errors/external requests occur. Desktop capture and 390-pixel staff preview screenshots were visually inspected; labels, controls and pixels fit without horizontal page overflow. These are not physical-camera/Safari/iPad tests.
+
+Changed UI files are `photos.tsx` (visitor capture/consent and staff bounded private canvas), `checkin.tsx` (only opaque attempt proof after confirmation), `history.tsx` (on-demand photo actions), `main.tsx` (accurate live indicator), CSS and gateway/Vite permission headers. No blob/data image URL exemption is added to CSP: private staff JPEGs decode to transient canvases and close their bitmap; capture previews stay in canvas. Unmount aborts network work and clears pixels/tracks; it cannot promise rollback of a submitted save, so uncertain saves explicitly offer same-byte retry/withdrawal. Only the original proof survives while this receipt is mounted; no name/NetID attempt payload remains.
+
+Browser behavior references checked 14 November 2026: [getUserMedia permission/secure context and a potentially unanswered prompt](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia), [stop all tracks and detach the stream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/stop). Physical hardware, Safari/iPad, Linux/remote CI, machine trust/ACL rollout and a fresh administrator-only OS-isolation test remain unrun. Sharp is a native dependency, so byte/pixel/deadline/process guards do not claim a complete native memory/security sandbox. No operator credential/database, actual camera image or model input was used.
 
 Photo HTTP checkpoint — 14 November 2026: real separate-process photo flow passed with knowledge stopped: original visit proof, cross-session denial, real JPEG save/exact replay/changed-byte conflict, staff-only private bytes, visitor withdrawal/tombstone refusal, staff CSRF/delete and preserved visits/no pending files (2.94 seconds). Three fake-upstream gateway tests pass for role/CSRF/consent/context stripping, image hash/mime/request-ID validation, post-read staff expiry and six-upload rate bound. A maintenance test proves failed unlink remains unready across a successful independent check-in and recovers on a successful hourly sweep. Nine focused API/repository/compatibility checks, full strict typecheck and lint pass. Camera/UI integration remains pending.
 

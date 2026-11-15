@@ -20,6 +20,7 @@ function App() {
   const [screen, setScreen] = useState<'choices' | 'checkin' | 'question'>('choices');
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [offline, setOffline] = useState(false);
+  const [cameraLive, setCameraLive] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { if (access.session?.role !== 'kiosk') { setBegun(false); setScreen('choices'); } }, [access.session?.role]);
   useEffect(() => {
@@ -53,7 +54,7 @@ function App() {
           {!access.busy && <StaffHistory key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} />}
           <p className="note">Begin signs staff out and starts a new visitor session.</p>
           <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button>
-        </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
+        </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm onCameraChange={setCameraLive} key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
           <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('question')}>Ask a question<span>Approved document evidence</span></button></div>
           <p>Check in, look up approved document evidence, or speak with Makerspace staff for help.</p>
@@ -72,7 +73,7 @@ function App() {
         <StaffAccess access={access} />
       </aside>
     </div>
-    <footer><span>MAKE SOMETHING THAT MATTERS.</span><span>Camera & microphone off</span></footer>
+    <footer><span>MAKE SOMETHING THAT MATTERS.</span><span>{cameraLive ? 'Camera active · microphone off' : 'Camera & microphone off'}</span></footer>
   </main>;
 }
 createRoot(document.getElementById('root')!).render(<App />);

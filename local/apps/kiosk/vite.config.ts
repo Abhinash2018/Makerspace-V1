@@ -16,7 +16,7 @@ export default defineConfig(({ command }) => {
           if (req.headers.host !== '127.0.0.1:5173' || (req.headers.origin !== undefined && req.headers.origin !== 'http://127.0.0.1:5173')) {
             res.statusCode = 403; res.end('Forbidden'); return;
           }
-          res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+          res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
           next();
         });
       },

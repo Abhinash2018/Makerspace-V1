@@ -48,7 +48,7 @@ export function createGateway(config: Configuration, options: { assetDir?: strin
   });
   for (const [url, asset] of assets) app.get(url, (_req, reply) => reply
     .header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
-    .header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    .header('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()')
     .type(asset.type).send(asset.body));
   return app;
 }
