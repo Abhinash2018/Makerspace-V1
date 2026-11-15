@@ -1,6 +1,6 @@
 # Task index
 
-**MS-000**, **MS-001** and **MS-002** have local acceptance evidence. Local main contains MS-001 squash `c616a00` (14 grouped feature commits retained) and MS-002 squash `bbd3fa0d` (19 retained); both rebase checks were already current. On 13 November 2026 the owner authorized finishing each task and continuing this backlog in dependency order, on separate branches with grouped local commits and a final local rebase/squash. Active task: **MS-003**. Later rows need a full specification before implementation. No push/deployment is authorized.
+**MS-000**, **MS-001**, **MS-002** and **MS-003** have Windows acceptance evidence. Main contains MS-001 squash `c616a00` (14 grouped feature commits retained) and MS-002 squash `bbd3fa0d` (19 retained); MS-003 is at its final squash handoff with 100 automated tests and a real synthetic CPU embedding/index check. On 13–14 November 2026 the owner authorized finishing tasks and continuing in dependency order, separate branches, grouped commits, rebase and one main squash/task, plus verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Active task: **MS-003** handoff, then **MS-004**. Later rows need full specifications before implementation. Deployment remains separate; Linux/Safari/iPad and a fresh administrator-only OS-isolation test remain unrun.
 
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |

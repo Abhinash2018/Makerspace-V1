@@ -31,7 +31,7 @@ flowchart TD
     end
 ```
 
-MS-000 created metadata-only service databases and explicit Ollama diagnostics. MS-001 added gateway-owned access controls; MS-002 extends attendance with self-reported visits, while knowledge remains metadata-only until ingestion. There is still no visitor question endpoint. A developer CLI can explicitly run a harmless generation probe.
+MS-000 created metadata-only service databases and explicit Ollama diagnostics. MS-001 added gateway-owned access controls; MS-002 extends attendance with self-reported visits. MS-003 adds knowledge-owned approved PDF ingestion and a versioned local embedding index through explicit operator commands. There is still no visitor question endpoint. A developer CLI can explicitly run a harmless generation probe.
 
 ## Service ownership
 
@@ -117,6 +117,8 @@ The implemented request path is browser to gateway, gateway to authenticated att
 SQLite is a deliberate single-host starting point. It is not a horizontally distributed database. If measured concurrent writes, lock contention, dataset size, or multiple hosts exceed the design, migrate the owning service to a self-hosted PostgreSQL instance with verified export/import and rollback. Do not place a SQLite file on a network share or run independent replicas writing copies of it.
 
 ## Local AI and document answers — future contract
+
+MS-003 implements the evidence store: a bounded local PDF.js worker extracts page text, deterministic chunks are embedded by fixed-loopback Ollama calls, and knowledge migration 2 atomically publishes immutable document versions and compatible index memberships. Private source names are content hashes. Model name/digest/dimensions/prefixes/chunker identity prevent vector mixing. Complete-corpus checks also compare stored chunk counts; reindex rejects a changed corpus snapshot. No database transaction spans a model call. Failed/cancelled preparation preserves prior evidence. Operator approval, quotas, model licensing, startup configuration validation and rollback details are recorded in [MS-003](../tasks/MS-003-document-ingestion.md) and the [runbook](../LOCAL_SETUP.md#approved-document-ingestion-ms-003). Shared packages contain no knowledge repository. Public question/answer contracts are still MS-004.
 
 Ollama handles inference; it does not automatically know Makerspace policies. The knowledge feature must retrieve relevant approved document passages and supply them with the question. “RAG” means retrieving evidence before generating the answer.
 

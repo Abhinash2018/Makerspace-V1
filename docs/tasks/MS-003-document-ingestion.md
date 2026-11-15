@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — final acceptance and handoff |
+| Status | Done — Windows implementation accepted; final squash handoff below |
 | Branch | `feat/MS-003-document-ingestion` |
 | Owner | Abinash Ghimire; Codex implements the active request |
 | Dependencies | MS-001; starting from local main after completed MS-002 squash `bbd3fa0d` |
@@ -79,25 +79,30 @@ Finish focused tests/evidence before each exact-path commit; split coupled work 
 
 ## Acceptance criteria
 
-- [ ] A synthetic two-page PDF yields deterministic chunks with correct page provenance; malformed/encrypted/empty/oversized input fails without invented text.
-- [ ] Extraction/batch/vector/time/resource bounds and cancellation are exercised; no arbitrary URL/model, PDF action, CDN or cloud fallback exists.
-- [ ] Only explicitly approved regular local PDFs enter private source/index storage; settings/source symlinks and unknown schema fail closed.
-- [ ] Existing knowledge metadata upgrades safely and remains service-owned; startup never migrates or recreates a missing DB.
-- [ ] Current duplicate imports are idempotent; a changed source/title creates a new immutable version; concurrent/failed/cancelled preparation cannot partially replace the active index.
-- [ ] Vectors record exact model digest/dimension/prefix/chunker identity; incompatible/new models require a separate complete index, without mixed-vector retrieval.
-- [ ] Reindex/status work on approved private sources and expose only bounded metadata/counts; model/settings/DB failure does not damage the active prior corpus.
-- [ ] Synthetic PDF ingestion and lookup succeed with the already installed CPU embedding model; fake-provider results are distinguished from real-model/offline evidence.
-- [ ] Attendance/auth/status/lifecycle behavior remains correct and independent; no student/production data or prompts/paths/bodies enter logs or commits.
-- [ ] Runbook, contract/data decisions, actual checks and remaining platform/parser/model limits are documented; source/Git audit passes.
+- [x] A synthetic two-page PDF yields deterministic chunks with correct page provenance; malformed/encrypted/empty/oversized input fails without invented text.
+- [x] Extraction/batch/vector/time/resource bounds and cancellation are exercised; no visitor-provided URL/model, PDF action invocation, CDN or cloud fallback exists.
+- [x] Only explicitly approved regular local PDFs enter private source/index storage; settings/source symlinks and unknown schema fail closed.
+- [x] Existing knowledge metadata upgrades safely and remains service-owned; startup never migrates or recreates a missing DB.
+- [x] Current duplicate imports are idempotent; a changed source/title creates a new immutable version; concurrent/failed/cancelled preparation cannot partially replace the active index.
+- [x] Vectors record exact model digest/dimension/prefix/chunker identity; incompatible/new models require a separate complete index, without mixed-vector retrieval.
+- [x] Reindex/status work on approved private sources and expose only bounded metadata/counts; model/settings/DB failure does not damage the active prior corpus.
+- [x] Synthetic PDF ingestion and lookup succeed with the already installed CPU embedding model; fake-provider results are distinguished from real-model/offline evidence.
+- [x] Attendance/auth/status/lifecycle behavior remains correct and independent; no student/production data or prompts/paths/bodies enter logs or commits.
+- [x] Runbook, contract/data decisions, actual checks and remaining platform/parser/model limits are documented; source/Git audit passes (final audit record follows).
 
 ## Verification evidence
 
 | Check | Command/procedure | Actual result | Limits |
 | --- | --- | --- | --- |
 | Baseline/branch | Inspect knowledge/config/manifests/scripts/history; create `feat/MS-003-document-ingestion` from main | Passed, 13 November 2026 | Local base `bbd3fa0d`; unrelated staging preserved; no push |
-| Model/runtime inventory | Loopback tags probe; read-only elevated process/listener/executable/manifest inspection | Existing assets found, daemon stopped | No generation/model download; API inventory unavailable before startup |
-| New checks | Fill per group | Not run | No MS-003 runtime implementation yet |
-| Real/offline/platform | Fill during acceptance | Not run | Existing MS-002 results are historical; no operator documents/data imported |
+| Model/runtime inventory | Loopback tags/status and installed manifests; owned daemon | Ollama 0.32.5, cloud disabled; existing EmbeddingGemma reused on CPU | Exact digest below; no downloads/global settings |
+| Unit/tooling | `pnpm test` alone | 16 tooling + 75 unit tests passed, 31 Vitest files | Concurrent heavy-check run had four timeouts; identical standalone rerun passed without relaxing limits |
+| Static/build | `pnpm lint`; `pnpm build` | Passed; build includes strict workspace typecheck and production Vite bundle | Pinned Node 24.22.2/pnpm 10.34.9, isolated frozen verification copy |
+| Native processes | `pnpm test:integration`; final focused `tests/integration/knowledge.test.ts` | Six checks passed across five files; final knowledge command rerun passed | Synthetic temporary runtime; no operator DB/settings read |
+| Browser regression | `pnpm test:e2e` | Three Chromium flows passed; desktop/mobile screenshots inspected | External browser requests blocked; unchanged UI; no Safari/iPad/Linux execution |
+| Real model | `pnpm knowledge:acceptance --cpu` | Passed: synthetic 2-page PDF, 2 x 768-dimensional chunks, duplicate/reindex preservation and expected-page lookup | 4,802 ms; fake providers distinguished; not an institutional grounding evaluation |
+| OS offline isolation | Ignored temporary program-scoped firewall test | Not run: shell lacks administrator token; zero rules created/remaining | Outbound control remained available; no new OS-isolation pass claimed; MS-000 history separate |
+| Source/Git/docs | `task-source-audit.mjs bbd3fa0d`; exact-path commits and history audit | Preliminary audit passed; final record appended below | Preserves 31,185 original staged additions/13 PDF changes; no force push |
 
 PDF dependency checkpoint — 14 November 2026: pinned `pdfjs-dist` 6.5.438 in the knowledge-owned manifest and lockfile, resolving its optional local `@napi-rs/canvas` 1.1.1 platform packages. Three packages were added for this Windows platform in the isolated verification copy. Native Node 24 imports the local legacy PDF.js build and reports the expected version/getDocument API. `pnpm install --frozen-lockfile --offline` then passed with an unchanged lockfile. Existing pins and the native-build allowlist are unchanged; no global tool update was accepted. The original installed/staged dependency tree was not modified. No parser behavior, document import or model download is claimed from dependency verification.
 
@@ -133,10 +138,10 @@ Migration 2 is append-only; reverting code does not remove versions/vectors/file
 
 ## Completion record
 
-- Changed paths: specification/scope/index at group 1; fill later groups with evidence.
+- Changed paths: knowledge settings/PDF worker/chunker/embedding adapter/schema/repository/source/ingestion/commands; synthetic fixtures/unit/native/manual acceptance checks; manifest/lockfile; architecture/setup/workspace/Git/task documentation.
 - Decisions: knowledge-owned configuration/data, explicit operator approval, text-PDF extraction, deterministic page provenance, independent local embeddings and versioned model-compatible index.
-- Limits: implementation/tests/real model gate pending. OCR, public uploads, generated answers and corpus policy approval are excluded.
+- Limits: Windows verified using isolated dependencies; original checkout dependency installation remains incomplete. Fresh OS firewall isolation requires an administrator token and remains unrun. No Linux/remote CI/Safari/iPad or institutional corpus/model-policy approval. PDF resource guards are not an OS sandbox; no OCR/public upload/generated answers. Private orphan cleanup/backup lifecycle is MS-010. Existing operator runtime still needs explicit knowledge migration 2 and deliberate embedding configuration; development did not modify it.
 - Next task: MS-004 grounded answers after this evidence store is accepted; later backlog follows dependencies.
-- Revision/date: local base `bbd3fa0d`, 13 November 2026.
+- Revision/date: final runtime source `2efbb3c`, 14 November 2026; source-equal rebase/squash SHA recorded after creation in the next task's dependency handoff.
 
 Primary references: [PDF.js Node example](https://github.com/mozilla/pdf.js/blob/master/examples/node/getinfo.mjs), [official package metadata](https://registry.npmjs.org/pdfjs-dist/latest), [Ollama embed API](https://docs.ollama.com/api/embed), [EmbeddingGemma library](https://ollama.com/library/embeddinggemma), [Google model card/license and usage](https://huggingface.co/google/embeddinggemma-300m). Installed assets do not constitute a new institutional license/policy approval.

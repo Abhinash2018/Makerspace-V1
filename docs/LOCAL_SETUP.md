@@ -90,6 +90,28 @@ Visits and their attempt/payload digests use the existing project default of 30 
 
 Row deletion is logical retention, not guaranteed erasure from SSDs, WAL files, backups or external copies. Owned SQLite connections enable secure-delete; backups and copies require their own lifecycle. Cleanup is an indexed transaction with a one-second lock wait; its execution time depends on expired row count. No production load target or physical-erasure guarantee is claimed. Do not revert to migration-1-only code over a version-2 DB or delete the DB to make readiness green. Rollback requires a reviewed migration/data plan and a SQLite-safe backup.
 
+## Approved document ingestion (MS-003)
+
+Stop services and preserve a SQLite-safe backup before `pnpm db:migrate`. Knowledge migration 2 appends owned document/version/index tables; startup never migrates or creates a missing database. Development acceptance uses disposable synthetic databases and never migrates your operator DB.
+
+Use an already installed local embedding model. Embedding and chat settings are separate; no command below pulls a model. With Ollama bound to loopback and cloud disabled, run from `local/`:
+
+```sh
+pnpm knowledge configure --model embeddinggemma:latest
+pnpm knowledge status
+pnpm knowledge ingest --approved --key workshop-policy --title "Workshop policy" --file "C:/approved/policy.pdf"
+pnpm knowledge status
+pnpm knowledge reindex
+```
+
+`--approved` means the local operator has reviewed and approved that specific PDF; omit it and ingestion refuses before reading/copying the source or calling a model. The example path is illustrative, not a bundled policy. No documents are imported by startup. There is no browser upload or question endpoint yet. Regular local text PDFs only: no UNC/URLs/symlinks, passwords or OCR; at most 10 MiB and 100 pages. Empty/image-only input fails, and blank pages of partially text-bearing files are reported explicitly. Worker extraction has a ten-second limit; an import/reindex operation has a five-minute cancellation deadline. Cancellation/failure preserves active DB evidence; a pre-commit crash can leave an inactive source orphan.
+
+Configuration exclusively creates `<RUNTIME_DIR>/knowledge/embedding-settings.json`; repeating configure never overwrites it. A missing file disables ingestion, and a corrupt/symlinked file refuses startup. To change models/prefixes, stop knowledge, back up the settings/DB/private sources and explicitly edit the private JSON using the documented fields in [MS-003](tasks/MS-003-document-ingestion.md). Restart validation then run reindex. EmbeddingGemma defaults to CPU, document prefix `title: none | text: ` and query prefix `task: search result | query: `. Reindex uses only previously approved digest-named private PDFs; it cannot import a new external path. Existing versions and old model indexes are preserved. A changed setting/model digest requires its own complete compatible index; status must report `complete:true` before later retrieval can use it.
+
+Knowledge owns `knowledge.sqlite` and `sources/<sha256>.pdf`. Keep them private, backed up together and out of Git/web roots. Limits: 50 document keys, ten immutable versions/key, four index identities, 5,000 current chunks/index and 20,000 stored chunks total. Exhaustion refuses work rather than deleting history. Source/title changes create a version; repeats preserve the current version. Concurrent preparations use version/snapshot checks. Do not remove rows/files or reset the DB to bypass quotas; MS-010 handles reviewed lifecycle/backup operations. File mode requests do not replace Windows ACL management. PDF worker limits are resource guards, not an OS malware sandbox.
+
+`pnpm knowledge:acceptance --cpu` explicitly runs a synthetic real-model acceptance probe using the already installed `embeddinggemma:latest` and disposable storage. Ordinary test suites use fake loopback providers and synthetic PDFs; Python is not required. Google Gemma license applies to EmbeddingGemma; institutional corpus/model approval is separate. This task does not establish real-policy grounding quality, which belongs to MS-004.
+
 ## Offline verification
 
 1. Complete dependency/model installation and production build while setup access is available.
