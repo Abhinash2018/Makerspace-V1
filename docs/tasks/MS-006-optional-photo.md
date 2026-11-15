@@ -68,6 +68,8 @@ Consent is literal true plus fixed version `visit-photo-v1`; unchecked/absent/ol
 
 ## Evidence and rollback
 
+Codec dependency checkpoint — 14 November 2026: exact attendance-owned Sharp 0.35.5 installed in the isolated verification copy, with three local platform/runtime packages and 327 lockfile additions for cross-platform optional resolutions. Existing package pins/build allowlist/global settings are unchanged; the original installed/staged dependency tree was not touched. Native pinned Node 24.22.2 reports Sharp 0.35.5/libvips 8.18.7 and successfully encodes/reads a synthetic 64 x 64 JPEG (292 bytes, no EXIF). Frozen offline reinstall passed with an unchanged lockfile. Public package setup metadata/networking is explicit; this is not a camera/storage/consent pass or runtime download.
+
 Specification/metadata inspection only, 14 November 2026; installation/implementation/tests pending. Migration 3 is append-only; reverting code does not undo photo data/files/consent. Preserve SQLite-safe DB plus private files before rollback; do not delete/reset to make readiness green. File modes do not replace Windows ACLs; actual camera/Safari/iPad/Linux remain separate gates. Next: MS-007 independent explicitly consented face enrollment/matching, never automatic use of these visit photos.
 
 Primary references: [Sharp constructor limits](https://sharp.pixelplumbing.com/api-constructor/), [output/metadata defaults](https://sharp.pixelplumbing.com/api-output/), [0.35.5 changelog](https://sharp.pixelplumbing.com/changelog/v0.35.5/), [installation](https://sharp.pixelplumbing.com/install/). Pin/runtime evidence follows; metadata limits are not a full sandbox guarantee.
