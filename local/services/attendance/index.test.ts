@@ -24,6 +24,10 @@ it('serves independent authenticated readiness and keeps public attendance route
     const ready = await app.inject({ url: '/health/ready', headers });
     expect(ready.statusCode).toBe(200); expect(readySchema.parse(ready.json()).ready).toBe(true);
     expect((await app.inject({ method: 'POST', url: '/api/v1/checkin', headers })).statusCode).toBe(404);
+    expect((await app.inject({ url: '/internal/v1/visits', headers: { host: headers.host } })).statusCode).toBe(401);
+    expect((await app.inject({ url: '/internal/v1/visits', headers })).json().items).toEqual([]);
+    expect((await app.inject({ url: '/internal/v1/visits?from=2026-02-29&to=2026-03-01', headers })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'POST', url: '/internal/v1/visits/export', headers, payload: { name: 'forged' } })).statusCode).toBe(400);
     expect(ready.headers['x-request-id']).toBe(ready.json().requestId);
   } finally { await app.close(); rmSync(root, { recursive: true, force: true }); }
 }, 15000);

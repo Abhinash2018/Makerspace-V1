@@ -9,6 +9,7 @@ import { createStatus } from './status.ts';
 import { registerAuth } from './auth.ts';
 import { registerCheckin } from './checkin.ts';
 import { registerQuestions } from './questions.ts';
+import { registerStaffHistory } from './history.ts';
 
 const dist = fileURLToPath(new URL('../../apps/kiosk/dist/', import.meta.url));
 export function createGateway(config: Configuration, options: { assetDir?: string; dev?: boolean } = {}) {
@@ -18,6 +19,7 @@ export function createGateway(config: Configuration, options: { assetDir?: strin
   const auth = registerAuth(app, { directory: path.join(config.runtime.root, 'gateway'), origins });
   registerCheckin(app, config, auth);
   registerQuestions(app, config, auth);
+  registerStaffHistory(app, config, auth);
   // Only build-owned files are registered as routes. No arbitrary path lookup.
   const assets = new Map<string, { body: Buffer; type: string }>();
   const directory = options.assetDir ?? dist;
