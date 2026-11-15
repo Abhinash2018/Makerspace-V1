@@ -36,18 +36,18 @@ export function migrate(directory: string) {
     db.pragma('busy_timeout = 1000');
     db.pragma('foreign_keys = ON');
     db.transaction(() => {
-    const tables = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
-    if (tables.length === 0 && db.pragma('application_id', { simple: true }) === 0 && db.pragma('user_version', { simple: true }) === 0) {
+      const tables = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
+      if (tables.length === 0 && db.pragma('application_id', { simple: true }) === 0 && db.pragma('user_version', { simple: true }) === 0) {
         db.exec('CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)');
         db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(1, owner, new Date().toISOString());
         db.pragma(`application_id = ${applicationId}`); db.pragma('user_version = 1');
-    }
-    if (schemaVersion(db) === 1) {
-      db.exec(knowledgeSchema);
-      db.prepare('INSERT INTO schema_migrations (version,name,applied_at) VALUES (?,?,?)').run(2, migrations[1]!, new Date().toISOString());
-      db.pragma('user_version = 2');
-    }
-    if (schemaVersion(db) !== 2) throw new Error('migrations_required');
+      }
+      if (schemaVersion(db) === 1) {
+        db.exec(knowledgeSchema);
+        db.prepare('INSERT INTO schema_migrations (version,name,applied_at) VALUES (?,?,?)').run(2, migrations[1]!, new Date().toISOString());
+        db.pragma('user_version = 2');
+      }
+      if (schemaVersion(db) !== 2) throw new Error('migrations_required');
     }).immediate();
     db.pragma('journal_mode = WAL');
   } finally { db.close(); }

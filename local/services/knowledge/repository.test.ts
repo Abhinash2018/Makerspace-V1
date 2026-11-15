@@ -34,6 +34,18 @@ it('atomically publishes immutable versions and compatible chunks, replays dupli
     expect(currentDocuments(root)[0]!.version).toBe(2);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+it('refuses incomplete chunk sets and rejects a reindex snapshot missing a newly added document', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'ms003-incomplete-'));
+  try {
+    migrate(root); publishDocuments(root, identity, [fixture()]);
+    publishDocuments(root, identity, [fixture({ key: 'hours' })]);
+    expect(() => publishDocuments(root, { ...identity, digest: 'c'.repeat(64) }, [fixture({ expectedVersion: 1 })], true)).toThrow('version_conflict');
+    expect(corpusStatus(root, identity).indexes).toBe(1);
+    const db = openKnowledge(root); db.prepare('DELETE FROM document_chunks WHERE document_key=?').run('hours'); db.close();
+    expect(corpusStatus(root, identity)).toMatchObject({ documents: 2, indexedDocuments: 1, complete: false });
+    expect(() => evidenceChunks(root, identity)).toThrow('index_incomplete');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 it('rolls back an entire prepared corpus on conflict/quota and rejects invalid provenance/vectors', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'ms003-atomic-'));
   try {

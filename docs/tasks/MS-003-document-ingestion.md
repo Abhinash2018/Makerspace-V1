@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — specification checkpoint |
+| Status | In progress — final acceptance and handoff |
 | Branch | `feat/MS-003-document-ingestion` |
 | Owner | Abinash Ghimire; Codex implements the active request |
 | Dependencies | MS-001; starting from local main after completed MS-002 squash `bbd3fa0d` |
@@ -67,15 +67,15 @@ Finish focused tests/evidence before each exact-path commit; split coupled work 
 
 | Group | Outcome / proposed message | Verification | Status |
 | --- | --- | --- | --- |
-| 1 | `docs(MS-003): define approved document ingestion` | Baseline/links/scope/dependency evidence | In progress |
-| 2 | Pin local PDF.js dependency | Lockfile/frozen install/native Node import, no build allowlist broadening | Planned |
-| 3 | Strict knowledge embedding settings | Validation, exclusive configuration, missing/corrupt/symlink paths, redaction | Planned |
-| 4 | Bounded PDF extraction and deterministic chunks | Synthetic multi-page text, empty/malformed/limits/deadline, page provenance | Planned |
-| 5 | Fixed local embedding adapter | Fake HTTP bounds/remote rejection/vector validation, real installed CPU model | Planned |
-| 6 | Owned migration and index repository | Upgrade/rerun/ownership, atomic current version, duplicate/conflict, vector compatibility/limits | Planned |
-| 7 | Approved ingestion/reindex orchestration | No-approval refusal, failure/cancellation rollback, digest/version changes, incomplete corpus detection | Planned |
-| 8 | Operator commands/status/runbook | Native subprocess success/failure and secret-free output; no automatic source import | Planned |
-| 9 | Acceptance and handoff | Full lint/type/build/unit/process/browser, real synthetic PDF/model check, source/index audit, local rebase/squash | Planned |
+| 1 | `docs(MS-003): define approved document ingestion` | Baseline/links/scope/dependency evidence | Done `b9c2b7e`; dependency handoff `6936915` |
+| 2 | Pin local PDF.js dependency | Lockfile/frozen install/native Node import, no build allowlist broadening | Done `7a9e507` |
+| 3 | Strict knowledge embedding settings | Validation, exclusive configuration, missing/corrupt/symlink paths, redaction | Done `405a4d2` |
+| 4 | Bounded PDF extraction and deterministic chunks | Synthetic multi-page text, encrypted/empty/malformed/limits/deadline, page provenance | Done `cd962a7` |
+| 5 | Fixed local embedding adapter | Fake HTTP bounds/remote rejection/vector validation, real installed CPU model | Done `9daeb40` |
+| 6 | Owned migration and index repository | Upgrade/rerun/ownership, atomic current version, duplicate/conflict, vector compatibility/limits | Done `f158d2c`; final completeness hardening follows |
+| 7 | Approved ingestion/reindex orchestration | No-approval refusal, failure/cancellation rollback, digest/version changes, incomplete corpus detection | Done `cb08186` |
+| 8 | Operator commands/status/runbook | Native subprocess success/failure and secret-free output; no automatic source import | Commands done `82e79f0`; runbook finalizing |
+| 9 | Acceptance and handoff | Full lint/type/build/unit/process/browser, real synthetic PDF/model check, source/index audit, local rebase/squash | In progress; OS firewall test administratively unavailable |
 
 ## Acceptance criteria
 
@@ -106,6 +106,10 @@ Dependency/runtime handoff — 14 November 2026: MS-002's permanent task record 
 Knowledge settings checkpoint — 14 November 2026: `settings.ts` owns a bounded strict `embedding-settings.json` beneath knowledge runtime storage, with a disabled default when absent. Explicit configuration exclusively creates it with an installed model selector, CPU mode and model-specific retrieval/document prefixes; it never overwrites an existing file or changes the shared `.env` contract. Two synthetic tests cover exclusive preservation, immutable settings, model/prefix/key bounds, malformed/oversized files and junction refusal. Focused lint and full typecheck pass in the verification copy. Prefix identity is recorded for later index compatibility; no document/model call is made by settings loading. Windows ACL inheritance remains unchanged.
 
 ## Contributor explanation
+
+Final check scheduling — 14 November 2026: a concurrent compiler/lint/full-unit run hit four timing limits (old credential/SQLite worker tests and new PDF/ingestion tests). No timeout/assertion was relaxed. After compiler/lint finished, the identical full suite passed alone: 16 tooling and 75 unit tests, 7.14-second Vitest duration versus 28.29 seconds during the failed concurrent run. This supports resource contention as the cause, without claiming an unavailable OS memory measurement. Full strict typecheck/build and lint separately passed. Keep heavyweight compiler/model/test runs separate on this host. The final native knowledge command check is rerun after completeness hardening; prior auth/attendance/browser regressions remain passed with unchanged UI/contracts.
+
+Completeness review — 14 November 2026: a final repository review added verification that each current membership has its declared chunk count, so missing stored chunks cannot masquerade as a complete corpus. Reindex now checks the entire current-document snapshot inside its publication transaction, rejecting an import added during preparation. Eight focused migration/repository/ingestion tests pass, including both cases. Earlier 99-test regression run passed all six native-process and three Chromium checks; reviewed desktop status/mobile check-in screenshots remain clear. A new OS firewall-isolation run stopped at the administrator prerequisite, with zero rules created/remaining and outbound control still available. It is unrun, not passed; MS-000's historical isolation evidence is separate. Real synthetic CPU ingestion passed without this OS-isolation claim.
 
 Publication checkpoint — 14 November 2026: owner explicitly approved the exact repository after automatic review asked for destination confirmation. Retried atomic fast-forward push succeeded: main now includes completed MS-000/MS-001/MS-002 squashes; the MS-001/MS-002 grouped branches and MS-003 through `cb08186` are published. No force push, history replacement, PR message, deployment or private runtime files. The earlier rejection was resolved by explicit destination approval, not a workaround.
 

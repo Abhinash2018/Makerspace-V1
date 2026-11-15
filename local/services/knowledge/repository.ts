@@ -37,7 +37,7 @@ export function currentDocuments(directory: string): readonly DocumentVersion[] 
   const db = openKnowledge(directory);
   try { return Object.freeze(currentRows(db).map(document)); } finally { db.close(); }
 }
-export function publishDocuments(directory: string, identityInput: IndexIdentity, prepared: readonly PreparedDocument[]): readonly DocumentVersion[] {
+export function publishDocuments(directory: string, identityInput: IndexIdentity, prepared: readonly PreparedDocument[], entireCorpus = false): readonly DocumentVersion[] {
   const identity = validateIndex(identityInput), bucket = indexKey(identity);
   if (!prepared.length || prepared.length > corpusLimits.documents || new Set(prepared.map(item => item.key)).size !== prepared.length) throw new CorpusFailure('invalid_document');
   for (const item of prepared) {
@@ -57,6 +57,10 @@ export function publishDocuments(directory: string, identityInput: IndexIdentity
   const db = openKnowledge(directory);
   try {
     return db.transaction(() => {
+      if (entireCorpus) {
+        const current = currentRows(db);
+        if (current.length !== prepared.length || current.some(row => !prepared.some(item => item.key === row.document_key && item.expectedVersion === row.version))) throw new CorpusFailure('version_conflict');
+      }
       const known = db.prepare('SELECT identity FROM embedding_indexes WHERE index_key=?').get(bucket) as { identity: string } | undefined;
       if (known && indexKey(JSON.parse(known.identity) as IndexIdentity) !== bucket) throw new CorpusFailure('index_incompatible');
       if (!known) {
@@ -101,7 +105,8 @@ export function corpusStatus(directory: string, identity?: IndexIdentity) {
   try {
     const documents = currentRows(db);
     const bucket = identity ? indexKey(validateIndex(identity)) : null;
-    const indexed = bucket ? (db.prepare('SELECT count(*) AS n FROM document_indexes JOIN current_documents USING(document_key,version) WHERE index_key=?').get(bucket) as { n: number }).n : 0;
+    const indexed = bucket ? (db.prepare(`SELECT count(*) AS n FROM document_indexes x JOIN current_documents USING(document_key,version)
+      WHERE index_key=? AND x.chunk_count=(SELECT count(*) FROM document_chunks p WHERE p.index_key=x.index_key AND p.document_key=x.document_key AND p.version=x.version)`).get(bucket) as { n: number }).n : 0;
     const indexes = (db.prepare('SELECT count(*) AS n FROM embedding_indexes').get() as { n: number }).n;
     return Object.freeze({ documents: documents.length, indexedDocuments: indexed, indexes, complete: documents.length > 0 && indexed === documents.length, indexKey: bucket });
   } finally { db.close(); }
@@ -122,7 +127,9 @@ export function evidenceChunks(directory: string, identity: IndexIdentity): read
   try {
     return db.transaction(() => {
       const bucket = indexKey(validateIndex(identity));
-      const missing = db.prepare('SELECT count(*) AS n FROM current_documents c LEFT JOIN document_indexes x ON c.document_key=x.document_key AND c.version=x.version AND x.index_key=? WHERE x.index_key IS NULL').get(bucket) as { n: number };
+      const missing = db.prepare(`SELECT count(*) AS n FROM current_documents c LEFT JOIN document_indexes x
+        ON c.document_key=x.document_key AND c.version=x.version AND x.index_key=?
+        WHERE x.index_key IS NULL OR x.chunk_count!=(SELECT count(*) FROM document_chunks p WHERE p.index_key=x.index_key AND p.document_key=x.document_key AND p.version=x.version)`).get(bucket) as { n: number };
       if (missing.n) throw new CorpusFailure('index_incomplete');
       const rows = db.prepare('SELECT v.*,x.ordinal,x.chunk_id,x.page,x.text,x.vector FROM document_chunks x JOIN current_documents c USING(document_key,version) JOIN document_versions v USING(document_key,version) WHERE index_key=? ORDER BY document_key,ordinal LIMIT ?').all(bucket, corpusLimits.currentChunks + 1) as (VersionRow & { ordinal: number; chunk_id: string; page: number; text: string; vector: Buffer })[];
       if (!rows.length) throw new CorpusFailure('index_incomplete');

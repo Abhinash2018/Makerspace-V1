@@ -54,5 +54,5 @@ export async function reindexDocuments(context: Context) {
   }
   check(signal);
   if (!identity) throw new CorpusFailure('index_incomplete');
-  return { identity, documents: publishDocuments(context.directory, identity, prepared) };
+  return { identity, documents: publishDocuments(context.directory, identity, prepared, true) };
 }
