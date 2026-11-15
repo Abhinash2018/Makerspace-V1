@@ -97,7 +97,7 @@ export function StaffAccess({ access }: { access: ReturnType<typeof useAccess> }
   return <section className="staff-access" aria-label="Staff access">
     {access.session?.role === 'staff' ? <>
       <p aria-live="polite">Staff access active</p>
-      <p className="note">Staff tools are coming soon. Begin starts a new visitor session and signs staff out.</p>
+      <p className="note">Visit history is available while signed in. Begin starts a new visitor session and signs staff out.</p>
       <button className="back" disabled={access.busy} onClick={() => { void access.signOut(); }}>Sign out</button>
     </> : <>
       <button className="back" disabled={access.busy} onClick={() => setOpen(value => !value)} aria-expanded={open}>Staff sign in</button>

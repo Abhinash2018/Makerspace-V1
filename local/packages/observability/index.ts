@@ -31,6 +31,8 @@ export const errorMessages = {
   idempotency_conflict: 'This attempt was already used with different details.',
   attendance_unavailable: 'Check-in could not be confirmed. Try the same attempt again.',
   knowledge_unavailable: 'Document answers are unavailable. Please ask Makerspace staff.',
+  history_unavailable: 'Visit history is unavailable. Please try again later.',
+  export_too_large: 'Export is too large. Select a narrower date range.',
 } as const;
 export function errorBody(code: keyof typeof errorMessages, id: string) {
   return { error: { code, message: errorMessages[code], requestId: id } };

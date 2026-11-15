@@ -5,6 +5,7 @@ import type { SystemStatus } from '../../../packages/contracts/index.ts';
 import { StaffAccess, useAccess } from './access.tsx';
 import { CheckinForm } from './checkin.tsx';
 import { QuestionForm } from './questions.tsx';
+import { StaffHistory } from './history.tsx';
 import './style.css';
 
 const labels = { gateway: 'Kiosk gateway', attendance: 'Attendance service', knowledge: 'Knowledge service', ollama: 'Local AI model' };
@@ -48,7 +49,11 @@ function App() {
         <h1 id="welcome-title">Ideas start<br />with <em>you.</em></h1>
         <p className="intro">Welcome to Ingram Makerspace. Get ready to learn, build, and bring something new to life.</p>
         <p className="assistant-name">Ingram Makerspace Assistant</p>
-        {!begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
+        {access.session?.role === 'staff' ? <section aria-label="Staff workspace">
+          {!access.busy && <StaffHistory key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} />}
+          <p className="note">Begin signs staff out and starts a new visitor session.</p>
+          <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button>
+        </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
           <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('question')}>Ask a question<span>Approved document evidence</span></button></div>
           <p>Check in, look up approved document evidence, or speak with Makerspace staff for help.</p>
