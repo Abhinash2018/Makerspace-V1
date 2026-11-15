@@ -15,6 +15,13 @@ it('requires lexical overlap and similarity, bounds retrieval, and constructs ci
   const result = validateQuotes('What training is required?', { quotes: [{ source: 'S1', text: syntheticEvidence[0]!.text }] }, syntheticEvidence);
   expect(result).toMatchObject({ status: 'answered', excerpts: [{ citation: { chunkId: 'a'.repeat(64), documentKey: 'policy', version: 1, page: 1, title: 'Synthetic policy' } }] });
 });
+it('requires an explicit amount for the same subject on quantity questions, rather than unrelated opening hours', () => {
+  const question = 'How many hours of training are required?';
+  expect(validateQuotes(question, { quotes: [{ source: 'S1', text: syntheticEvidence[0]!.text }] }, syntheticEvidence).status).toBe('uncertain');
+  expect(validateQuotes(question, { quotes: [{ source: 'S2', text: syntheticEvidence[1]!.text }] }, syntheticEvidence).status).toBe('uncertain');
+  const text = 'Synthetic training requires two hours.';
+  expect(validateQuotes(question, { quotes: [{ source: 'S1', text }] }, [{ ...syntheticEvidence[0]!, text }]).status).toBe('answered');
+});
 it('refers to staff on forged sources, invented/irrelevant quotes, duplicate references or untrusted citation fields', () => {
   for (const quotes of [[], [{ source: 'S4', text: syntheticEvidence[0]!.text }], [{ source: 'S1', text: 'Training permits unsupervised tool use.' }], [{ source: 'S2', text: syntheticEvidence[1]!.text }], [{ source: 'S1', text: syntheticEvidence[0]!.text }, { source: 'S1', text: syntheticEvidence[0]!.text }]]) {
     const parsed = quoteSelectionSchema.parse({ quotes });

@@ -1,6 +1,7 @@
 import { answerDisclaimer, questionSchema, type AnswerResponse } from '../../packages/contracts/answers.ts';
 import { currentDocuments, CorpusFailure, type EvidenceChunk } from './repository.ts';
 import { overlaps, retrieveEvidence } from './retrieval.ts';
+import { questionTerms } from './retrieval.ts';
 import { selectQuotes, type quoteSelectionSchema } from './chat.ts';
 import type { z } from 'zod';
 import { loadEmbeddingSettings } from './settings.ts';
@@ -14,12 +15,20 @@ function completeExcerpt(source: string, quote: string) {
   return position >= 0 && (position === 0 || /[.!?]$/.test(source.slice(0, position).trimEnd()))
     && (position + quote.length === source.length || /[.!?]$/.test(quote));
 }
+function supportsQuantity(question: string, quote: string) {
+  if (!/\b(how (many|much|long)|number of|duration|(?:what|which)(?: is| are)?(?: the)? (?:cost|price|fee))\b/i.test(question)) return true;
+  const amount = /\d|\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|noon|midnight)\b/i.test(quote);
+  const cues = new Set(['many', 'much', 'long', 'number', 'duration', 'required', 'require', 'need', 'needed', 'cost', 'price', 'fee']);
+  const subjects = questionTerms(question).filter(word => !cues.has(word));
+  const words = new Set(quote.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []);
+  return amount && subjects.length > 0 && subjects.every(word => words.has(word));
+}
 export function validateQuotes(question: string, quotes: z.infer<typeof quoteSelectionSchema>, evidence: readonly EvidenceChunk[]): Answer {
   if (!quotes.quotes.length || new Set(quotes.quotes.map(quote => quote.source)).size !== quotes.quotes.length) return uncertain('unsupported_output');
   const excerpts: Extract<AnswerResponse, { status: 'answered' }>['excerpts'] = [];
   for (const quote of quotes.quotes) {
     const chunk = evidence[Number(quote.source.slice(1)) - 1];
-    if (!chunk || quote.text !== quote.text.trim() || !completeExcerpt(chunk.text, quote.text) || !overlaps(question, quote.text)) return uncertain('unsupported_output');
+    if (!chunk || quote.text !== quote.text.trim() || !completeExcerpt(chunk.text, quote.text) || !overlaps(question, quote.text) || !supportsQuantity(question, quote.text)) return uncertain('unsupported_output');
     excerpts.push({ text: quote.text, citation: { chunkId: chunk.chunkId, documentKey: chunk.document.key, title: chunk.document.title,
       version: chunk.document.version, sourceHash: chunk.document.sourceHash, page: chunk.page } });
   }

@@ -38,12 +38,12 @@ Knowledge owns retrieval, selected model identity, queue/concurrency and answer 
 
 | Group | Outcome | Verification | State |
 | --- | --- | --- | --- |
-| 1 | Specification/dependency handoff | Baseline/source/docs audit | In progress |
-| 2 | Strict answer contracts | Bounds, normalization, hostile input and response schemas | Planned |
-| 3 | Retrieval and constrained local chat | Model compatibility, thresholds, injected/invalid citations, failure/cancellation/digest cases | Planned |
-| 4 | Internal route/gateway authorization | Role/CSRF/token/rate/capacity, disconnect and response validation | Planned |
-| 5 | Transient kiosk questions | Browser success/uncertainty/failure/cancel/reset/expiry, mobile/desktop review | Planned |
-| 6 | Evaluation/runbook/handoff | Real synthetic installed CPU models, known supported/unsupported/injected questions, regressions, source audit/rebase/squash/push | Planned |
+| 1 | Specification/dependency handoff | Baseline/source/docs audit | Done `7def17b` |
+| 2 | Strict answer contracts | Bounds, normalization, hostile input and response schemas | Done `c36761e` |
+| 3 | Retrieval and constrained local chat | Model compatibility, thresholds, injected/invalid citations, failure/cancellation/digest cases | Done `94e43e6`; quantity hardening pending |
+| 4 | Internal route/gateway authorization | Role/CSRF/token/rate/capacity, disconnect and response validation | Done `163d923` |
+| 5 | Transient kiosk questions | Browser success/uncertainty/cancel/reset/expiry, mobile/desktop review | Implemented/tested; final screenshots/commit pending |
+| 6 | Evaluation/runbook/handoff | Real synthetic installed CPU models, known supported/unsupported/injected questions, regressions, source audit/rebase/squash/push | In progress; expanded evaluation rerun pending |
 
 ## Acceptance criteria
 
@@ -56,6 +56,10 @@ Knowledge owns retrieval, selected model identity, queue/concurrency and answer 
 - [ ] Automated checks, real installed-model evaluation, actual limits and operator setup are documented; preserve unrelated staging/history; rebase/squash/push only verified source.
 
 ## Evidence
+
+Expanded real evaluation rerun — 14 November 2026: all six cases passed after quantity hardening, total 33,063 ms. Training/page 1: 10,672 ms; hours/page 2: 5,369 ms; unsupported password/menu: 599/584 ms; unsupported training duration correctly uncertain: 6,656 ms; instruction-injection question returned approved training evidence/page 1: 7,165 ms. Same recorded model digests, no downloads. The duration failure remains documented above as the reason for the guard. Five focused engine/validator/chat checks passed, including positive stated-duration evidence and rejection of unrelated opening hours. Final strict/static/regression checks follow.
+
+Expanded evaluation failure — 14 November 2026: a sixth real case asking for training duration failed the expected uncertainty assertion; the model selected approved text without the missing duration. This was a relevance failure despite valid citations, not hidden as a pass. Added a deterministic English quantity-question guard requiring an explicit numeric/written amount and matching subject terms in the same selected excerpt, plus prompt guidance and positive/negative amount tests. This conservative heuristic may decline valid synonym/other-language questions; it is not general semantic proof. Focused and real reruns follow before acceptance.
 
 Real CPU evaluation — 14 November 2026: explicit `pnpm answers:acceptance --cpu` passed five synthetic cases in 28,767 ms using installed EmbeddingGemma digest `85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1` and qwen3:4b digest `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`. Training and hours selected pages 1 and 2 (13,221/5,601 ms); unsupported password/menu questions returned uncertainty without chat (518/609 ms); an instruction-injection question returned only validated training evidence (5,750 ms). Every returned quote/hash/version/page was checked against the synthetic PDF. No model download, real corpus or OS-isolation claim. Quality beyond these cases remains unestablished.
 
@@ -74,6 +78,8 @@ Primary API references: [Ollama chat](https://docs.ollama.com/api/chat) and [str
 Constrained excerpts sacrifice fluent paraphrasing to make source support mechanically checkable. Similarity/lexical gates are heuristics and must not be presented as proof of policy correctness; evaluation uses synthetic fixtures and real corpus review remains an operator responsibility. No schema change. Removing the feature code leaves the approved MS-003 evidence store intact. AI unavailability cannot block attendance. Public institutional rollout and actual device evaluation remain later tasks.
 
 ## Completion record
+
+Quantity/evaluation group: six-case real installed CPU evaluation and five focused engine/chat/validator checks passed after the relevance fix. Full strict typecheck/production build and lint passed on the same source, including current browser code. Manual evaluation is opt-in through `answers:acceptance --cpu`, uses disposable synthetic data and prints bounded metadata only. This fixes the observed missing-duration case without treating the model's confidence as evidence.
 
 HTTP group verification is complete: five focused gateway/knowledge tests passed, including direct internal token enforcement, strict body rejection and missing-model fixed failure. The native >5-second/cancel/overload check passed. Current full lint/typecheck/build passed before the final added internal-route assertions (which passed focused execution). Browser evidence flow also passed against separate real services and a fake local model; desktop/mobile captures show readable text, with a small button-spacing refinement prepared for final review. No production model/data configuration was modified.
 
