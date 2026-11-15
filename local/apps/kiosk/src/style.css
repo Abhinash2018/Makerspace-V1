@@ -4,3 +4,11 @@
 @media(prefers-reduced-motion:no-preference){button{transition:background .15s}}
 .staff-access{margin-top:24px;padding-top:20px;border-top:1px solid #cbd2c4}.staff-access form{margin-top:20px}.staff-access label{display:block;margin-bottom:8px;font-size:14px}.staff-access input{display:block;width:100%;min-height:48px;border:1px solid #52645c;border-radius:6px;padding:10px;font:inherit;background:#fff;color:#173c36;margin-bottom:12px}.staff-access form button{margin:0 8px 8px 0}.staff-access input:focus-visible{outline:3px solid #b04b27;outline-offset:3px}.access-message{font-size:14px;color:#853b24}.begin:disabled,.back:disabled{opacity:.65;cursor:wait}
 .checkin{max-width:460px;margin-top:24px}.checkin label{display:block;font-weight:bold;font-size:14px;margin:16px 0 7px}.checkin input{display:block;width:100%;min-height:52px;font:inherit;padding:10px;border:1px solid #52645c;border-radius:7px;background:#fff;color:#173c36}.checkin input:focus-visible{outline:3px solid #b04b27;outline-offset:3px}.checkin input[readonly]{background:#e5e9df}.checkin p{font-size:14px;color:#52645c}.checkin .access-message{color:#853b24}.checkin-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.actions button:not(:disabled){color:#173c36;background:#f4f1e9}.actions button:not(:disabled):hover{background:#d5ded2}
+.question-form { margin-top: 2rem; }
+.question-form label { display: block; font-weight: 600; margin: 1rem 0 .5rem; }
+.question-form textarea { display: block; width: 100%; min-height: 8rem; resize: vertical; padding: .85rem; font: inherit; color: inherit; background: #fff; border: 1px solid #51665e; border-radius: .45rem; }
+.question-form textarea:focus-visible { outline: 3px solid #a94725; outline-offset: 3px; }
+.question-form figure { margin: 1.25rem 0; padding: 1rem; border-left: 3px solid #386f55; background: #e6e9df; overflow-wrap: anywhere; }
+.question-form blockquote { margin: 0 0 .75rem; line-height: 1.6; white-space: pre-wrap; }
+.question-form figcaption { font-size: .85rem; line-height: 1.5; }
+.question-form button { margin-right: .5rem; margin-top: .75rem; }

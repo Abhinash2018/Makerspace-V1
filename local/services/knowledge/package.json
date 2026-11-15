@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "better-sqlite3": "12.11.1",
-    "pdfjs-dist": "6.5.438"
+    "pdfjs-dist": "6.5.438",
+    "zod": "4.6.7"
   }
 }

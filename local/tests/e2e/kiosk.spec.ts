@@ -23,7 +23,7 @@ test('built kiosk stays usable through service loss with external requests block
     await page.getByRole('button', { name: 'Begin' }).click();
     await expect(page.getByRole('heading', { name: 'What would you like to do?' })).toBeFocused();
     await expect(page.getByRole('button', { name: 'Check in Self-reported visit' })).toBeEnabled();
-    await expect(page.getByRole('button', { name: 'Ask a question Coming soon' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Ask a question Approved document evidence' })).toBeEnabled();
     await page.getByRole('button', { name: 'Back to welcome' }).click();
     await page.screenshot({ path: info.outputPath('desktop.png'), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });

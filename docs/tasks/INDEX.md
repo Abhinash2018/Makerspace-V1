@@ -1,6 +1,8 @@
 # Task index
 
-**MS-000**, **MS-001**, **MS-002** and **MS-003** have Windows acceptance evidence. Main contains MS-001 squash `c616a00` (14 grouped feature commits retained) and MS-002 squash `bbd3fa0d` (19 retained); MS-003 is at its final squash handoff with 100 automated tests and a real synthetic CPU embedding/index check. On 13–14 November 2026 the owner authorized finishing tasks and continuing in dependency order, separate branches, grouped commits, rebase and one main squash/task, plus verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Active task: **MS-003** handoff, then **MS-004**. Later rows need full specifications before implementation. Deployment remains separate; Linux/Safari/iPad and a fresh administrator-only OS-isolation test remain unrun.
+**MS-000** through **MS-003** have Windows acceptance evidence and are pushed on main. Squashes: MS-001 `c616a00` (14 branch commits retained), MS-002 `bbd3fa0d` (19 retained), MS-003 `32a45cff` (12 retained). Latest checks cover 100 automated cases and a real synthetic CPU embedding/index probe. On 13–14 November 2026 the owner authorized finishing tasks and continuing in dependency order, separate branches, grouped commits, rebase and one main squash/task, plus verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Active task: **MS-004**. Later rows need full specifications before implementation. Deployment remains separate; Linux/Safari/iPad and a fresh administrator-only OS-isolation test remain unrun.
+
+MS-004 now has Windows acceptance evidence for 111 automated checks and six real synthetic CPU-model evaluation cases; it is at its final audit/squash handoff, with grouped commits pushed through the reviewed kiosk screen. MS-005 protected staff history follows. The real-corpus/heuristic limits and observed evaluation failure/fix are recorded in its task file.
 
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |
@@ -8,7 +10,7 @@
 | [MS-001](MS-001-access-controls.md) | `feat/MS-001-access-controls` | Local staff sign-in, kiosk sessions, CSRF, authorization, rate limits, session store | MS-000 |
 | [MS-002](MS-002-manual-checkin.md) | `feat/MS-002-manual-checkin` | Name/NetID visits, validation, self-reported labeling, idempotency, retention | MS-001 |
 | [MS-003](MS-003-document-ingestion.md) | `feat/MS-003-document-ingestion` | Approved local PDFs, page extraction, versioning, local embedding/index pipeline | MS-001 |
-| MS-004 | `feat/MS-004-grounded-answers` | Local Ollama answers with citations, uncertainty behavior, evaluation, cancellation | MS-003 |
+| [MS-004](MS-004-grounded-answers.md) | `feat/MS-004-grounded-answers` | Local Ollama evidence excerpts with citations, uncertainty, evaluation, cancellation | MS-003 |
 | MS-005 | `feat/MS-005-staff-history` | Protected paginated visit history, local dates, safe CSV export | MS-002 |
 | MS-006 | `feat/MS-006-optional-photo` | Separate optional photo consent, private files, protected retrieval and expiry | MS-002, MS-005 |
 | MS-007 | `feat/MS-007-face-checkin` | Explicit enrollment consent, isolated encrypted templates, match/revoke/expiry flow | MS-002, MS-006 |

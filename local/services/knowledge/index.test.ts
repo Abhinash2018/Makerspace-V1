@@ -22,6 +22,10 @@ it('keeps DB readiness independent of AI and protects diagnostics', async () => 
     expect(modelStatusSchema.parse(response.json()).code).toBe('model_not_configured');
     expect(response.headers['x-request-id']).toBe(response.json().requestId);
     expect((await app.inject({ method: 'POST', url: '/api/chat', headers })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'POST', url: '/internal/v1/answers', headers: { host: headers.host }, payload: { question: 'Training?' } })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: '/internal/v1/answers', headers, payload: { question: 'Training?', model: 'forged' } })).statusCode).toBe(400);
+    const unavailable = await app.inject({ method: 'POST', url: '/internal/v1/answers', headers, payload: { question: 'Training?' } });
+    expect(unavailable.statusCode).toBe(503); expect(unavailable.json().error.code).toBe('knowledge_unavailable');
   } finally { await app.close(); rmSync(root, { recursive: true, force: true }); }
 }, 15000);
 

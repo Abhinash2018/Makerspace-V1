@@ -112,6 +112,16 @@ Knowledge owns `knowledge.sqlite` and `sources/<sha256>.pdf`. Keep them private,
 
 `pnpm knowledge:acceptance --cpu` explicitly runs a synthetic real-model acceptance probe using the already installed `embeddinggemma:latest` and disposable storage. Ordinary test suites use fake loopback providers and synthetic PDFs; Python is not required. Google Gemma license applies to EmbeddingGemma; institutional corpus/model approval is separate. This task does not establish real-policy grounding quality, which belongs to MS-004.
 
+## Grounded document questions (MS-004)
+
+First configure/import approved PDFs and check that `pnpm knowledge status` reports a complete compatible index. Set the separate `OLLAMA_CHAT_MODEL` in private `.env` to an already installed local chat model, then restart the services. This host was evaluated with `embeddinggemma:latest` for embeddings and `qwen3:4b` for chat, both explicitly on CPU. No request or startup command downloads a model. Missing/incompatible evidence or unavailable local models never enable a cloud fallback.
+
+Begin a kiosk session and choose Ask a question. Enter a question about the approved documents without names, NetIDs or personal information. The interface shows only validated verbatim excerpts and source title/version/page, or refers to staff. It does not generate unconstrained policy prose. Source documents and visitor questions are untrusted data; the model receives no tools. Citation and sentence-boundary checks reject invented references/text and obvious fragments, but cannot prove relevance or that a selected quote includes every qualification in the full document. Staff review and real-corpus evaluation remain necessary. Excerpts do not authorize equipment use or replace required training.
+
+Question limits are 500 characters, six attempts/minute per gateway and one active answer/no waiting queue in knowledge. The entire answer has a 90-second knowledge deadline; cold CPU inference may still fail within that budget. Busy/unavailable feedback means no answer was delivered, and retry is explicit. Cancel/back/reset/expiry abort work and clear transient question/answer fields; no conversation or offline browser queue is stored. Cancellation propagates to the local provider where supported; the application cannot promise instantaneous termination of an external model runner. Attendance remains independent of this work.
+
+`pnpm answers:acceptance --cpu` runs an explicit disposable synthetic evaluation using the two already installed models. It records case IDs/status/citation pages/model digests/timings, never prompt/source/generated bodies. Automated regression providers are fake loopback servers and do not establish real model quality. See [MS-004 evidence](tasks/MS-004-grounded-answers.md) for actual results, limits and unrun platforms. OS-isolated offline tests require administrator rights on this Windows host; a loopback real-model pass alone is not labelled a firewall-isolation pass.
+
 ## Offline verification
 
 1. Complete dependency/model installation and production build while setup access is available.
