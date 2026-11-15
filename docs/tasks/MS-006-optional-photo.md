@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Windows acceptance complete — final documentation/squash handoff |
+| Status | Done — Windows acceptance, main squash and verified push |
 | Branch | `feat/MS-006-optional-photo` |
 | Dependencies | MS-002, MS-005; main `c43f481693bb6545d249dc4e2dcbb8851696b16b` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
@@ -64,9 +64,11 @@ Consent is literal true plus fixed version `visit-photo-v1`; unchecked/absent/ol
 - [x] Explicit migration/version checks, private path/fsync publication, exact retry/conflict and revocation tombstones preserve data on failure.
 - [x] Expired/revoked photos are unreadable immediately; owned file cleanup queues/retries survive retention/delete failures without touching unrelated files.
 - [x] Camera tracks/canvas/proof/photo pixels clear on cancel/finish/reset/expiry; staff preview is private and transient; prior check-in/history/AI remain independent.
-- [ ] Actual synthetic-media/native/browser/static/visual/source-audit evidence and operational/platform limits support acceptance; reviewed grouped commits/squash preserve history.
+- [x] Actual synthetic-media/native/browser/static/visual/source-audit evidence and operational/platform limits support acceptance; reviewed grouped commits/squash preserve history.
 
 ## Evidence and rollback
+
+Completed handoff — 14 November 2026: main squash **`4d4028d13a16c83706a373b642e7774ba5083e11`** is pushed to the approved repository, preserving nine grouped branch commits through `dc9dbaed`. Clean temporary-worktree rebase was already current; the 45-path squash index exactly equaled the accepted feature tree and passed whitespace/private-artifact checks. Final audit: 37 runtime hashes match the tested copy, 96 links/19 anchors valid, unrelated staging preserved. All 136 automated checks, strict typecheck/lint/build and synthetic desktop/mobile review passed. No force push, operator migration, physical camera or deployment occurred. MS-007 now has its own branch/specification.
 
 Source checkpoint after runtime `6d53370a`: audit of 41 committed task paths/37 runtime paths confirms byte equality with the tested isolated source, no runtime/dependency/secret artifacts committed, 94 local links/18 anchors valid and the original unrelated staging preserved. Full strict typecheck/build/lint completed successfully after the expanded browser fixture. Final documentation adds the migration/consent/private preview/retention/quotas/cleanup runbook and architecture handoff. Rebase/one-commit main squash/fast-forward push will be recorded with their actual result after execution; no force push or deployment is authorized.
 
