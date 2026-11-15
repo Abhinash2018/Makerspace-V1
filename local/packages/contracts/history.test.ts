@@ -9,4 +9,7 @@ it('accepts real bounded Chicago date filters and strict bounded keyset queries'
   for (const value of [{ from: '2026-11-01' }, { to: '2026-11-14' }, { from: '2026-11-14', to: '2026-11-01' }, { from: '2026-10-01', to: '2026-11-01' }, { name: 'forged' }, { limit: '51' }, { limit: '0' }, { limit: '01' }, { limit: ['1', '2'] }, { cursor: 'forged' }]) expect(historyQuerySchema.safeParse(value).success).toBe(false);
   expect(historyFilterSchema.safeParse({ cursor: 'forged' }).success).toBe(false);
   expect(historyFilterSchema.parse({})).toEqual({});
+  expect(historyQuerySchema.parse({ photos: '1' }).photos).toBe('1');
+  expect(historyQuerySchema.safeParse({ photos: 'true' }).success).toBe(false);
+  expect(historyFilterSchema.safeParse({ photos: '1' }).success).toBe(false);
 });

@@ -58,6 +58,8 @@ Attendance owns history SQL, 30-day eligibility, date conversion, signed cursors
 
 ## Evidence and operational impact
 
+Completed handoff — 14 November 2026: main squash `c43f481693bb6545d249dc4e2dcbb8851696b16b` created/pushed after an already-current source-equal rebase. All 26 squash paths equaled accepted branch source; final audit passed 18 runtime hashes, 83 links/16 anchors and unrelated staging preservation. Six grouped branch commits remain through `a11adcf4`; no force push/history replacement. New `feat/MS-006-optional-photo` starts here.
+
 Final regression/audit — 14 November 2026: all eight native-process cases passed across seven files (43.62 seconds), including prior auth/check-in/ingestion/answer cancellation/lifecycle and new history/export. Together with 92 unit + 16 tooling + five browser cases, total is 121 passed. `task-source-audit.mjs 58fb172` passed 22 committed task paths/18 runtime hashes equal to the tested copy, 81 local links/15 anchors and original staged-entry preservation. Final documentation adds paths/links; rerun after commit. Named-path whitespace checks passed. No private outputs or real records are committed; final squash index must equal this accepted source.
 
 | Check | Actual result | Limits |

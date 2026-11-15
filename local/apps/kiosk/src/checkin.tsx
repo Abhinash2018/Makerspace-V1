@@ -3,14 +3,16 @@ import { checkinRequestSchema, checkinResponseSchema } from '../../../packages/c
 import type { CheckinRequest, CheckinResponse } from '../../../packages/contracts/checkin.ts';
 import { errorSchema } from '../../../packages/contracts/index.ts';
 import type { BrowserSession } from '../../../packages/contracts/index.ts';
+import { VisitPhoto } from './photos.tsx';
 
-export function CheckinForm({ session, onFinish, onSessionInvalid }: {
-  session: BrowserSession; onFinish: () => void; onSessionInvalid: () => void;
+export function CheckinForm({ session, onFinish, onSessionInvalid, onCameraChange }: {
+  session: BrowserSession; onFinish: () => void; onSessionInvalid: () => void; onCameraChange: (live: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false), [locked, setLocked] = useState(false);
   const [message, setMessage] = useState('');
   const [invalidField, setInvalidField] = useState<'name' | 'netId' | null>(null);
   const [receipt, setReceipt] = useState<CheckinResponse | null>(null);
+  const [photoKey, setPhotoKey] = useState('');
   const form = useRef<HTMLFormElement>(null), name = useRef<HTMLInputElement>(null), title = useRef<HTMLHeadingElement>(null);
   const attempt = useRef<CheckinRequest | null>(null), controller = useRef<AbortController | null>(null), active = useRef(true);
   const submitting = useRef(false);
@@ -42,6 +44,7 @@ export function CheckinForm({ session, onFinish, onSessionInvalid }: {
       if (!active.current) return;
       if (response.ok) {
         const saved = checkinResponseSchema.parse(body);
+        setPhotoKey(attempt.current!.idempotencyKey);
         attempt.current = null; form.current?.reset(); setReceipt(saved);
       } else {
         const error = errorSchema.safeParse(body);
@@ -59,6 +62,7 @@ export function CheckinForm({ session, onFinish, onSessionInvalid }: {
     <h2 id="checkin-saved-title" ref={title} tabIndex={-1}>Check-in recorded</h2>
     <p>Your visit was saved. Identity is self-reported.</p>
     <p><time dateTime={receipt.recordedAt}>{new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago' }).format(new Date(receipt.recordedAt))}</time> (Central time)</p>
+    <VisitPhoto session={session} visitId={receipt.visitId} idempotencyKey={photoKey} onSessionInvalid={onSessionInvalid} onCameraChange={onCameraChange} />
     <button className="back" onClick={onFinish}>Finish</button>
   </section>;
   return <form className="checkin" ref={form} autoComplete="off" onChange={() => { if (!locked && invalidField) { setInvalidField(null); setMessage(''); } }} onSubmit={event => { event.preventDefault(); void submit(); }} aria-labelledby="checkin-title">

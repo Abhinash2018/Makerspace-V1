@@ -37,6 +37,8 @@ export function registerStaffHistory(app: FastifyInstance, config: Configuration
         const result = historyResponseSchema.parse(response.body);
         if (result.requestId !== req.id || result.from !== (parsed.data.from ?? null) || result.to !== (parsed.data.to ?? null)
           || result.items.length > ('limit' in parsed.data ? parsed.data.limit as number : 25)) throw new Error('Invalid response.');
+        const photos = 'photos' in parsed.data && parsed.data.photos === '1';
+        if (result.items.some(row => photos ? typeof row.photoAvailable !== 'boolean' : row.photoAvailable !== undefined)) throw new Error('Invalid response.');
         if (!auth.authorize(req, reply, 'staff')) return reply;
         auth.touch(req); return reply.send(result);
       }

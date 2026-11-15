@@ -33,6 +33,10 @@ export const errorMessages = {
   knowledge_unavailable: 'Document answers are unavailable. Please ask Makerspace staff.',
   history_unavailable: 'Visit history is unavailable. Please try again later.',
   export_too_large: 'Export is too large. Select a narrower date range.',
+  invalid_photo: 'Photo could not be accepted. Use a new camera capture.',
+  photo_unavailable: 'Photo could not be confirmed. Retry the same capture or ask staff.',
+  photo_not_found: 'No eligible photo or visit was found.',
+  photo_conflict: 'A photo was already saved or consent was withdrawn for this visit.',
 } as const;
 export function errorBody(code: keyof typeof errorMessages, id: string) {
   return { error: { code, message: errorMessages[code], requestId: id } };

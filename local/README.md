@@ -10,6 +10,8 @@ Read root [AGENTS.md](../AGENTS.md), [the task and commit order](../docs/tasks/M
 
 ## Toolchain and available commands
 
+Optional consented visit photos use attendance migration 3 and a pinned local Sharp codec. Check-in remains independent; photo capture starts only after separate consent. Staff history privately previews/removes retained photos on request. Follow the [photo runbook](../docs/LOCAL_SETUP.md#optional-visit-photo-ms-006) for explicit migration, cleanup/quotas and physical-device limits. No operator database/photo is used in development checks.
+
 Use Node **24.22.2** and pnpm **10.34.9**. The Node pin lives in `.node-version` and `package.json`; pnpm is pinned in `packageManager` and `engines.pnpm`. Install through an approved version manager or portable distribution, or request approval before a machine-wide installation. The workspace does not install or switch tools automatically. Consult [Node downloads](https://nodejs.org/en/download) and the [pnpm 10 installation guide](https://pnpm.io/10.x/installation); use the exact pins above rather than an unversioned latest install.
 
 From `local/`, using those versions:

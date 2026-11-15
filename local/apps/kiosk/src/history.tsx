@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { BrowserSession } from '../../../packages/contracts/index.ts';
 import { errorSchema } from '../../../packages/contracts/index.ts';
 import { historyFilterSchema, historyResponseSchema, type HistoryFilter, type HistoryResponse } from '../../../packages/contracts/history.ts';
+import { StaffPhoto } from './photos.tsx';
 
 const central = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 export function StaffHistory({ session, onSessionInvalid }: { session: BrowserSession; onSessionInvalid: () => void }) {
@@ -27,7 +28,7 @@ export function StaffHistory({ session, onSessionInvalid }: { session: BrowserSe
   }
   async function load(selected: HistoryFilter, cursor: string) {
     const { request, signal } = begin(); setPage(null);
-    const query = new URLSearchParams({ limit: '25', ...(selected.from ? { from: selected.from, to: selected.to! } : {}), ...(cursor ? { cursor } : {}) });
+    const query = new URLSearchParams({ limit: '25', photos: '1', ...(selected.from ? { from: selected.from, to: selected.to! } : {}), ...(cursor ? { cursor } : {}) });
     try {
       const response = await fetch(`/api/v1/staff/visits?${query}`, { signal, credentials: 'same-origin', cache: 'no-store', redirect: 'error' });
       if (!current(request)) return;
@@ -70,8 +71,8 @@ export function StaffHistory({ session, onSessionInvalid }: { session: BrowserSe
     {message && <p className="access-message" role="status">{message}</p>}
     {page && <>
       {!page.items.length ? <p>No retained visits match this date range.</p> : <div className="history-table" tabIndex={0} role="region" aria-label="Visit history table"><table role="table">
-        <thead><tr><th scope="col">Central time</th><th scope="col">Name</th><th scope="col">NetID</th><th scope="col">Identity</th></tr></thead>
-        <tbody>{page.items.map(row => <tr key={row.visitId}><td data-label="Central time"><time dateTime={row.recordedAt}>{central.format(new Date(row.recordedAt))}</time></td><td data-label="Name">{row.name}</td><td data-label="NetID">{row.netId}</td><td data-label="Identity">Self-reported</td></tr>)}</tbody>
+        <thead><tr><th scope="col">Central time</th><th scope="col">Name</th><th scope="col">NetID</th><th scope="col">Identity</th><th scope="col">Photo</th></tr></thead>
+        <tbody>{page.items.map(row => <tr key={row.visitId}><td data-label="Central time"><time dateTime={row.recordedAt}>{central.format(new Date(row.recordedAt))}</time></td><td data-label="Name">{row.name}</td><td data-label="NetID">{row.netId}</td><td data-label="Identity">Self-reported</td><td data-label="Photo">{row.photoAvailable ? <StaffPhoto session={session} visitId={row.visitId} onSessionInvalid={onSessionInvalid} onRemoved={() => reset(filters)} /> : 'None'}</td></tr>)}</tbody>
       </table></div>}
       <p className="note">Page {position + 1}; {page.items.length} visits shown. New arrivals appear after Refresh history.</p>
     </>}

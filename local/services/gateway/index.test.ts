@@ -14,7 +14,7 @@ it('serves only built assets, rejects hostile browser context and separates guar
   const headers = { host: '127.0.0.1:3000' };
   try {
     const page = await app.inject({ url: '/', headers });
-    expect(page.statusCode).toBe(200); expect(page.headers['permissions-policy']).toContain('camera=()');
+    expect(page.statusCode).toBe(200); expect(page.headers['permissions-policy']).toBe('camera=(self), microphone=(), geolocation=()');
     expect(page.headers['content-security-policy']).toContain("connect-src 'self'");
     expect((await app.inject({ url: '/', headers: { host: 'evil.invalid' } })).statusCode).toBe(403);
     expect((await app.inject({ url: '/', headers: { ...headers, origin: 'https://evil.invalid' } })).statusCode).toBe(403);

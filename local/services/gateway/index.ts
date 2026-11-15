@@ -10,6 +10,7 @@ import { registerAuth } from './auth.ts';
 import { registerCheckin } from './checkin.ts';
 import { registerQuestions } from './questions.ts';
 import { registerStaffHistory } from './history.ts';
+import { registerPhotos } from './photos.ts';
 
 const dist = fileURLToPath(new URL('../../apps/kiosk/dist/', import.meta.url));
 export function createGateway(config: Configuration, options: { assetDir?: string; dev?: boolean } = {}) {
@@ -20,6 +21,7 @@ export function createGateway(config: Configuration, options: { assetDir?: strin
   registerCheckin(app, config, auth);
   registerQuestions(app, config, auth);
   registerStaffHistory(app, config, auth);
+  registerPhotos(app, config, auth);
   // Only build-owned files are registered as routes. No arbitrary path lookup.
   const assets = new Map<string, { body: Buffer; type: string }>();
   const directory = options.assetDir ?? dist;
@@ -46,7 +48,7 @@ export function createGateway(config: Configuration, options: { assetDir?: strin
   });
   for (const [url, asset] of assets) app.get(url, (_req, reply) => reply
     .header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
-    .header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    .header('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()')
     .type(asset.type).send(asset.body));
   return app;
 }

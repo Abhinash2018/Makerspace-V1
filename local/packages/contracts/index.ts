@@ -16,7 +16,7 @@ export const readySchema = z.strictObject({
 export const errorSchema = z.strictObject({
   error: z.strictObject({
     code: z.enum(['not_found', 'unauthorized', 'forbidden_host', 'forbidden_origin', 'bad_request', 'internal_error', 'request_too_large',
-      'forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity', 'idempotency_conflict', 'attendance_unavailable', 'knowledge_unavailable', 'history_unavailable', 'export_too_large']),
+      'forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity', 'idempotency_conflict', 'attendance_unavailable', 'knowledge_unavailable', 'history_unavailable', 'export_too_large', 'invalid_photo', 'photo_unavailable', 'photo_not_found', 'photo_conflict']),
     message: z.string().min(1).max(100), requestId: requestIdSchema,
   }),
 });
