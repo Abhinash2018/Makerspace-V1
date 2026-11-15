@@ -35,6 +35,8 @@ MS-000 created metadata-only service databases and explicit Ollama diagnostics. 
 
 ## Service ownership
 
+MS-006 adds optional consented visit photos owned only by attendance: private normalized JPEGs, migration 3 consent/revocation metadata and a durable cleanup queue. Gateway derives original kiosk attempt scope and protects upload/withdrawal plus staff-only read/delete through fixed token-authenticated HTTP contracts. History keeps its original strict shape unless `photos=1` explicitly requests availability; cursors bind that flag, and CSV stays unchanged. The post-confirmation camera UI has separate consent and explicit capture/save, stops tracks and clears transient buffers; camera denial never changes the recorded visit. Staff loads private pixels only on request. No photo reaches knowledge/Ollama or enrolls a face. Camera permission is now restricted to self, with microphone/geolocation disabled. See [MS-006](../tasks/MS-006-optional-photo.md) for resource/retention/proof boundaries and [photo operations](../LOCAL_SETUP.md#optional-visit-photo-ms-006) for migration/cleanup/backup limits.
+
 | Component | Initial responsibility | Later responsibility | Owns data |
 | --- | --- | --- | --- |
 | Kiosk | Accessible shell and system status | Check-in and Ask screens; consent and captions | Transient UI state only; no persistent identity on kiosk |

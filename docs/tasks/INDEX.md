@@ -2,7 +2,7 @@
 
 **MS-000** through **MS-005** are accepted and pushed on main. Squashes: MS-001 `c616a00` (14 branch commits retained), MS-002 `bbd3fa0d` (19), MS-003 `32a45cff` (12), MS-004 `58fb172` (eight), MS-005 `c43f481` (six). Latest Windows acceptance covers 121 automated checks, lint/typecheck/build and reviewed desktop/mobile staff history. On 13–14 November 2026 the owner authorized continuing the backlog in dependency order, separate branches, grouped commits, rebase and one main squash/task, plus verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Active task: **MS-006** optional consented photo. Later rows need full specifications before implementation. Deployment and unrun Linux/Safari/iPad/fresh administrator-only OS-isolation gates remain separate.
 
-MS-004 is complete and pushed as main squash `58fb172`, with eight grouped branch commits retained, 111 automated checks and six real synthetic CPU-model cases. Active task is **MS-005** protected staff history. Real-corpus/heuristic limits and the observed evaluation failure/fix are recorded in MS-004's task file.
+MS-006 has passed Windows acceptance: 136 automated checks, full lint/typecheck/build, synthetic-camera consent/skip/retake/retry/withdrawal/late-permission/expiry and private staff canvas checks. Eight implementation groups are pushed through `6d53370a`; final runbook/source audit and main squash are being prepared. Physical camera/Safari/iPad/Linux/remote CI remain unrun. MS-007 begins only after this accepted task lands.
 
 | ID | Future branch | Purpose | Depends on |
 | --- | --- | --- | --- |

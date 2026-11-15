@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — final acceptance and squash audit |
+| Status | Windows acceptance complete — final documentation/squash handoff |
 | Branch | `feat/MS-006-optional-photo` |
 | Dependencies | MS-002, MS-005; main `c43f481693bb6545d249dc4e2dcbb8851696b16b` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
@@ -53,7 +53,7 @@ Consent is literal true plus fixed version `visit-photo-v1`; unchecked/absent/ol
 | 3 | Strict photo contracts/owned migration | Consent/proof/body/response/schema/upgrade/foreign checks | Pushed `b78552f` |
 | 4 | Codec/private repository/retention | Metadata/size/cancel, proof/replay/conflict/revocation/queue/expiry/paths/quota | Pushed `e3d10bf`, `febe718`; compatibility `1b29c55` |
 | 5 | Authenticated HTTP | Kiosk ownership/staff/CSRF/rate/token/bounds/cancel/integrity | Pushed `6bcf1c9` |
-| 6 | Optional camera/staff UI | Synthetic-media consent/skip/capture/retake/save/remove/expiry and private preview | All six browser flows/static/build passed; commit prepared |
+| 6 | Optional camera/staff UI | Synthetic-media consent/skip/capture/retake/save/remove/expiry and private preview | Pushed `6d53370a`; all six browser flows/static/build passed |
 | 7 | Runbook/acceptance/squash | Regressions/static/build/visual/source audit, rebase/squash/push | Final audit pending |
 
 ## Acceptance criteria
@@ -67,6 +67,8 @@ Consent is literal true plus fixed version `visit-photo-v1`; unchecked/absent/ol
 - [ ] Actual synthetic-media/native/browser/static/visual/source-audit evidence and operational/platform limits support acceptance; reviewed grouped commits/squash preserve history.
 
 ## Evidence and rollback
+
+Source checkpoint after runtime `6d53370a`: audit of 41 committed task paths/37 runtime paths confirms byte equality with the tested isolated source, no runtime/dependency/secret artifacts committed, 94 local links/18 anchors valid and the original unrelated staging preserved. Full strict typecheck/build/lint completed successfully after the expanded browser fixture. Final documentation adds the migration/consent/private preview/retention/quotas/cleanup runbook and architecture handoff. Rebase/one-commit main squash/fast-forward push will be recorded with their actual result after execution; no force push or deployment is authorized.
 
 Final Windows regression checkpoint — 14 November 2026: all **136 automated checks** passed in the isolated pinned Node 24.22.2/pnpm 10.34.9 source copy: `pnpm test` (16 tooling + 105 unit across 45 files), `pnpm test:integration` (nine real-process cases/eight files, 48.20 seconds), and `pnpm test:e2e` (six Chromium flows, 52.3 seconds). No test/deadline/check was disabled. Existing Vite private `.env` denial is the expected security fixture, not an operator-file read. Final `pnpm build` (including strict workspace typecheck) and `pnpm lint` both passed with the expanded browser fixture. Source audit and squash follow those results.
 
