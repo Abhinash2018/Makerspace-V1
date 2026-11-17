@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — implementation and final acceptance |
+| Status | Accepted — local development checks complete; deployment separate |
 | Branch | `feat/MS-007-face-checkin` |
 | Dependencies | MS-002, MS-006; main `4d4028d13a16c83706a373b642e7774ba5083e11` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
@@ -64,22 +64,34 @@ Use fixed failures/no-match labels, six enrollment/match attempts per minute, se
 
 | Group | Outcome | Relevant verification | State |
 | --- | --- | --- | --- |
-| 1 | Specification/model/license/previous-task handoff | Read baseline; pin hashes; docs/source audit | Models/licenses inspected; final source audit pending |
-| 2 | Local dependencies/model settings/CPU pipeline | Native import, frozen offline install, actual synthetic detection/embedding and rejection | Native CPU acceptance passed; fresh frozen install pending |
-| 3 | Encrypted repository/consent/migration/cleanup | Key/tamper/privacy, idempotency/duplicate/quota/revocation/expiry/ambiguity | Implemented; focused tests passed |
-| 4 | Optional process and authenticated contracts | Loopback/config/launcher, role/CSRF/limits, signed scope/consume/receipt retries | Implemented; HTTP tests passed; process regression pending |
-| 5 | Explicit enrollment/match/withdraw/staff UI | Synthetic camera lifecycle/manual fallback/private state clearing | Implemented; synthetic-camera browser/desktop/mobile review passed |
-| 6 | Runbook/full acceptance/rebase/squash | Full regressions/static/build, real synthetic model evaluation, visual/source audits | Planned |
+| 1 | Specification/model/license/previous-task handoff | Read baseline; pin hashes; docs/source audit | Complete |
+| 2 | Local dependencies/model settings/CPU pipeline | Native import, frozen offline install, actual synthetic detection/embedding and rejection | Complete |
+| 3 | Encrypted repository/consent/migration/cleanup | Key/tamper/privacy, idempotency/duplicate/quota/revocation/expiry/ambiguity | Complete |
+| 4 | Optional process and authenticated contracts | Loopback/config/launcher, role/CSRF/limits, signed scope/consume/receipt retries | Complete |
+| 5 | Explicit enrollment/match/withdraw/staff UI | Synthetic camera lifecycle/manual fallback/private state clearing | Complete |
+| 6 | Runbook/full acceptance/rebase/squash | Full regressions/static/build, real synthetic model evaluation, visual/source audits | Verified locally; publication recorded by final Git refs/PR |
 
-- [ ] Explicit independent face consent precedes enrollment/camera; manual/photo flows never enroll automatically.
-- [ ] Pinned local CPU models perform real synthetic detection/embedding with documented quality/ambiguity/no-match limits and no runtime download.
-- [ ] Identity/templates are authenticated encrypted at rest; invalid key/model/ciphertext and quota/foreign schema fail closed.
-- [ ] Original enrollment proof, own withdrawal code and staff role are enforced; revocation/expiry block later matches/prepared publication.
-- [ ] Signed short-lived context-bound consume plus atomic attendance attempts prevent forged/cross-session/replayed-conflicting check-ins and safely confirm a lost success.
-- [ ] Optional process/model/camera failures preserve manual attendance/photo/history/questions; UI clears private state/tracks on exit/expiry.
-- [ ] Actual automated/native/browser/visual/source evidence, grouped pushes and one main squash support acceptance with unrun device/deployment limits recorded.
+- [x] Explicit independent face consent precedes enrollment/camera; manual/photo flows never enroll automatically.
+- [x] Pinned local CPU models perform real synthetic detection/embedding with documented quality/ambiguity/no-match limits and no runtime download.
+- [x] Identity/templates are authenticated encrypted at rest; invalid key/model/ciphertext and quota/foreign schema fail closed.
+- [x] Original enrollment proof, own withdrawal code and staff role are enforced; revocation/expiry block later matches/prepared publication.
+- [x] Signed short-lived context-bound consume plus atomic attendance attempts prevent forged/cross-session/replayed-conflicting check-ins and safely confirm a lost success.
+- [x] Optional process/model/camera failures preserve manual attendance/photo/history/questions; UI clears private state/tracks on exit/expiry.
+- [x] Actual automated/native/browser/visual/source evidence supports development acceptance; grouped history is retained and publication uses one main squash, verified from Git refs/PR. Unrun device/deployment gates remain explicit.
 
 ## Evidence and rollback
+
+Final local acceptance — 17 November 2026: **147 unique automated cases pass**: 16 tooling, 114 unit/repository, 10 process integration and seven Chromium browser cases. The final broad unit run passed 113 cases; the subsequently added real 1,000-enrollment quota case passed separately with all five repository cases. The full process suite passed nine existing cases after releasing the preview's port; the additional optional-face process case then passed. All seven browser cases passed, and the affected face case was rerun after the last focus/layout changes. Final strict lint/typecheck and production build pass. No failed assertion or security check was removed.
+
+The new capacity test initially timed out during cumulative creation/duplicate checking of 1,000 valid encrypted enrollments (about 109 seconds), with no assertion failure. Its own fixture budget was raised from 60 to 180 seconds; the complete retained test passed in 121.91 seconds. The production inference worker's independently tested 12-second kill budget is unchanged. The quota test confirms the 1,001st enrollment is refused and existing consent remains intact.
+
+A fresh copy installed **244 packages offline with a frozen lockfile, zero downloads and all installation scripts disabled**; lock contents remained unchanged. The fresh packaged ONNX CPU binding successfully loaded a pinned model session. Mainline installation still keeps its existing reviewed native-build allowlist; no unrelated package pins, global tools, driver, firewall or machine-wide configuration were changed.
+
+Native acceptance additionally rejects malformed JPEG headers, oversized bytes/dimensions, a damaged pinned detector and a wrong encryption key; repeated configuration refuses overwrite. The final running preview also passed a real-model HTTP flow with one generated fictional face: original manual proof -> encrypted enrollment -> opaque match ticket -> attendance commit -> exact retry -> withdrawal -> no new match, while the original saved receipt remained replayable. Staff listing excluded the revoked enrollment. This synthetic enrollment was removed after verification. The synthetic Ask guide and separately generated private preview staff credential remain usable; no operator records, real credentials or student images were copied or migrated.
+
+The isolated verification source hashes match the intentional runtime tree. The semantic Git audit confirms all unrelated pre-existing staging is preserved, including ignored dependencies/runtime files already in the original index. The pre-publication audit checked 56 task paths, 45 runtime hashes and 110 documentation links/22 anchors; the final task/index handoff is audited again before publication. The owner-authorized grouped branch history is retained, rebased on approved main before one-task squash publication; the final handoff reports the verified remote commit/PR.
+
+Remaining deployment gates: institution-approved model/biometric policy and real-world calibration; physical camera, Safari/iPad, Linux and remote-CI execution; fresh administrator-only OS network isolation; and production startup/backup/restore operations. These remain unrun here and are not labelled passed. No liveness, identity verification, access authorization or production-readiness claim is made. MS-008 onward still require specifications and are outside the current MS-007 implementation scope.
 
 17 November 2026 implementation checkpoint: pinned ONNX Runtime Node 1.31.1 package metadata, install script, and binary inventory reviewed before installation. Its archive contains Windows CPU DLL/binding; the postinstall's optional Linux CUDA download is unnecessary. Installed only in the isolated verification copy, with scripts disabled and the existing `better-sqlite3` build allowlist unchanged. Lock adds the face importer and 15 dependency resolutions; unrelated pins are preserved. The original checkout's staged/incomplete dependency tree is not repaired.
 
