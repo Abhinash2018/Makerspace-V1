@@ -38,6 +38,6 @@ test('built kiosk stays usable through service loss with external requests block
     await expect(page.getByRole('button', { name: 'Begin' })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText('gateway');
     expect(external).toEqual([]); expect(errors).toEqual([]);
-    expect(requests.every(value => value === 'GET /' || value.startsWith('GET /assets/') || value === 'GET /api/v1/system/status' || value === 'GET /api/v1/session' || value === 'POST /api/v1/session')).toBe(true);
+    expect(requests.every(value => value === 'GET /' || value.startsWith('GET /assets/') || value === 'GET /api/v1/system/status' || value === 'GET /api/v1/session' || value === 'POST /api/v1/session' || value === 'GET /api/v1/face/status')).toBe(true);
   } finally { await running?.stop(); fixture.dispose(); }
 });

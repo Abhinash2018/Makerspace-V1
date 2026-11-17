@@ -169,6 +169,41 @@ Attendance stores only re-encoded, auto-oriented JPEGs inside `<RUNTIME_DIR>/att
 
 Revoked/expired photos fail reads immediately. Startup/hourly maintenance and `pnpm attendance:cleanup` process up to 100 queued owned files per sweep; unlink failures remain queued and make attendance unready until a successful sweep. The command prints counts, never identity/path/image data. Check permissions or occupied files and retry; do not reset the database or bulk-delete directories. Never place unrelated files in the private directory. Crash-prepared inactive orphan review and SQLite-safe DB-plus-file backup/restore belong to MS-010. Logical deletion cannot promise erasure from SSDs/backups or previously exported copies.
 
+## Optional local face check-in (MS-007)
+
+The face service is a fourth separate Node process on literal `127.0.0.1:3003`. `FACE_ENABLED=0` is the default; `FACE_PORT` and `FACE_URL` must match and must differ from every other service, Ollama and Vite. Face model/service/camera failures preserve ordinary manual attendance, visit photos, history and Ask. The optional capability has its own `/api/v1/face/status`; it does not gate ordinary gateway readiness.
+
+Use the pinned Node/pnpm tools and frozen workspace lockfile. The face package owns Sharp 0.35.5, SQLite 12.11.1 and ONNX Runtime Node 1.31.1. The ONNX archive includes the Windows CPU binaries; its optional CUDA installation script is not required or allowlisted. Keep the existing native-build allowlist. No runtime command downloads a package or model. Explicitly acquire the two exact [pinned models and hashes](tasks/MS-007-face-checkin.md#local-model-and-resource-design) into reviewed local files before configuration. Retained upstream licenses are [YuNet MIT](licenses/YuNet-MIT.txt) and [SFace Apache-2.0](licenses/SFace-Apache-2.0.txt).
+
+With services stopped, preserve a SQLite-safe backup of any existing attendance DB, then run from `local/`:
+
+```sh
+pnpm face configure --approved --detector "C:/approved/face_detection_yunet_2023mar.onnx" --recognizer "C:/approved/face_recognition_sface_2021dec.onnx"
+pnpm face migrate
+pnpm db:migrate
+pnpm face status
+```
+
+The example file paths must be replaced with actual reviewed local files. Configuration checks exact hashes and exclusively creates private model copies, immutable settings and a random 256-bit encryption key in `.runtime/face/`. It rejects URLs, UNC paths, symlinks, foreign/oversized assets, existing settings/keys and partial setup; it never regenerates a lost key. Attendance migration 4 appends face-attempt metadata while preserving visits/photos and the existing receipt shape. Face owns `face.sqlite` and its explicit version-1 migration. Unknown/future schema fails closed. Startup never migrates or resets data.
+
+After configuration/migrations, set `FACE_ENABLED=1` in private `.env`, keep the loopback defaults, then restart `pnpm dev` or the built `pnpm start`. Enabled but unconfigured face remains unavailable while manual flows remain usable. The launcher starts/stops only its owned processes; a later failed face child does not restart automatically. Each face operation runs in one short-lived CPU-only worker with a 12-second parent budget, filtered environment, bounded JS heap and two native threads. `ORT_DISABLE_TELEMETRY=1` is set before worker launch/native import; no cloud fallback exists. Native memory and OS compromise are not completely contained by these bounds.
+
+After a confirmed manual visit, choose **Optional face enrollment**, review and check the separate consent, then explicitly start/capture/save. Consent covers encrypted face template plus self-reported name/NetID for up to 90 days, withdrawal and manual alternatives. Visit-photo consent is separate and never enrolls a face. Only the original active visitor session and manual attempt proof within five minutes can enroll; attendance is queried both before preparation and immediately before publication. JPEG captures are transient and bounded to 512 KiB, 4 million pixels and 2048 pixels per dimension; original images/crops are not stored. Finish, cancel, reset, expiry and unmount stop camera tracks and clear transient buffers.
+
+Keep the private withdrawal code from the receipt before leaving. **Withdraw face enrollment** removes the current enrollment and blocks delayed publication. The welcome choices also accept that code later, and authenticated staff can explicitly load/revoke a page of at most 25 active enrollments. Invalid bounded codes return the same generic processed result. No identity/template export exists. Withdrawal clears encrypted identity/template payloads immediately; tombstones prevent delayed writes. Logical deletion does not promise erasure from SSDs/backups. Raw identities/templates, codes and image bodies never enter logs, URLs, browser storage, knowledge or Ollama.
+
+Returning enrolled visitors choose **Returning visitor face check-in**, separately opt into matching, start/capture, then **Find a match**. Matching returns an opaque ticket and no person's identity/scores/template. **Record face check-in** submits that same attempt for attendance-owned consumption and storage. Tickets are signed, session/attempt/audience-bound and expire after 30 seconds; face restart loses outstanding tickets. Revocation/expiry is rechecked at consumption. An uncertain attendance reply offers an explicit same-attempt retry, including after ticket expiry/face outage when the exact receipt was already saved. Starting over or switching to manual after an uncertain save may record another visit; the UI explains this.
+
+Face templates/self-reported identity use AES-256-GCM with authenticated row/model/time context and fresh nonces. The private key must match immutable settings; missing/wrong keys, damaged ciphertext/model assets and invalid settings fail closed. Active gallery quota is 1,000; conservative cosine threshold is 0.65 with 0.10 separation. Read/match enforce 90-day expiry without extending consent. Startup/hourly maintenance plus `pnpm face cleanup` remove expired metadata and print counts only. Preserve DB/key/settings/model files together for backup or rollback; do not reset storage to bypass readiness. Owner-account/Windows ACL review and tested recovery belong to operations work.
+
+Explicit native development acceptance:
+
+```sh
+pnpm face:acceptance --approved --detector "C:/approved/face_detection_yunet_2023mar.onnx" --recognizer "C:/approved/face_recognition_sface_2021dec.onnx"
+```
+
+This uses only committed generated fictional faces and disposable storage. Tests cover real CPU detection/embedding, transformed/different/no/multiple faces, cancellation/concurrency/deadline, encrypted lifecycle, HTTP trust, lost replies and synthetic-camera UI. They do not establish real-world accuracy, fairness, physical-camera behavior, liveness or resistance to photo/video spoofing. Matches are fallible associations with self-reported identity, never university verification, equipment authorization, occupancy or door control. Institution-approved calibration and physical camera/Safari/iPad/Linux/network-isolation/deployment checks remain separate gates. See [MS-007 evidence](tasks/MS-007-face-checkin.md#evidence-and-rollback).
+
 ## Before real operation
 
 MS-000 is a development foundation. Later tasks add access controls, retention, backups and restore verification, process supervision/restart, approved document answers, and actual device tests. Each is tracked separately; do not label the initial shell production-ready.

@@ -4,6 +4,7 @@ import type { CheckinRequest, CheckinResponse } from '../../../packages/contract
 import { errorSchema } from '../../../packages/contracts/index.ts';
 import type { BrowserSession } from '../../../packages/contracts/index.ts';
 import { VisitPhoto } from './photos.tsx';
+import { FaceEnrollment, useFaceCapability } from './faces.tsx';
 
 export function CheckinForm({ session, onFinish, onSessionInvalid, onCameraChange }: {
   session: BrowserSession; onFinish: () => void; onSessionInvalid: () => void; onCameraChange: (live: boolean) => void;
@@ -13,6 +14,8 @@ export function CheckinForm({ session, onFinish, onSessionInvalid, onCameraChang
   const [invalidField, setInvalidField] = useState<'name' | 'netId' | null>(null);
   const [receipt, setReceipt] = useState<CheckinResponse | null>(null);
   const [photoKey, setPhotoKey] = useState('');
+  const [optional, setOptional] = useState<'photo' | 'face'>('photo');
+  const face = useFaceCapability(session);
   const form = useRef<HTMLFormElement>(null), name = useRef<HTMLInputElement>(null), title = useRef<HTMLHeadingElement>(null);
   const attempt = useRef<CheckinRequest | null>(null), controller = useRef<AbortController | null>(null), active = useRef(true);
   const submitting = useRef(false);
@@ -62,7 +65,8 @@ export function CheckinForm({ session, onFinish, onSessionInvalid, onCameraChang
     <h2 id="checkin-saved-title" ref={title} tabIndex={-1}>Check-in recorded</h2>
     <p>Your visit was saved. Identity is self-reported.</p>
     <p><time dateTime={receipt.recordedAt}>{new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Chicago' }).format(new Date(receipt.recordedAt))}</time> (Central time)</p>
-    <VisitPhoto session={session} visitId={receipt.visitId} idempotencyKey={photoKey} onSessionInvalid={onSessionInvalid} onCameraChange={onCameraChange} />
+    {face.enabled && <div className="checkin-controls"><button className="back" onClick={() => setOptional('photo')}>Optional visit photo</button><button className="back" onClick={() => setOptional('face')}>Optional face enrollment</button></div>}
+    {optional === 'photo' ? <VisitPhoto session={session} visitId={receipt.visitId} idempotencyKey={photoKey} onSessionInvalid={onSessionInvalid} onCameraChange={onCameraChange} /> : <FaceEnrollment session={session} visitId={receipt.visitId} idempotencyKey={photoKey} onSessionInvalid={onSessionInvalid} onCameraChange={onCameraChange} />}
     <button className="back" onClick={onFinish}>Finish</button>
   </section>;
   return <form className="checkin" ref={form} autoComplete="off" onChange={() => { if (!locked && invalidField) { setInvalidField(null); setMessage(''); } }} onSubmit={event => { event.preventDefault(); void submit(); }} aria-labelledby="checkin-title">

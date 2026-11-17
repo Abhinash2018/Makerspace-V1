@@ -6,6 +6,7 @@ import { StaffAccess, useAccess } from './access.tsx';
 import { CheckinForm } from './checkin.tsx';
 import { QuestionForm } from './questions.tsx';
 import { StaffHistory } from './history.tsx';
+import { FaceCheckin, FaceWithdrawal, StaffFaces, useFaceCapability } from './faces.tsx';
 import './style.css';
 
 const labels = { gateway: 'Kiosk gateway', attendance: 'Attendance service', knowledge: 'Knowledge service', ollama: 'Local AI model' };
@@ -17,7 +18,8 @@ const explanations: Record<string, string> = {
 function App() {
   const access = useAccess();
   const [begun, setBegun] = useState(false);
-  const [screen, setScreen] = useState<'choices' | 'checkin' | 'question'>('choices');
+  const [screen, setScreen] = useState<'choices' | 'checkin' | 'question' | 'face'>('choices');
+  const face = useFaceCapability(access.session);
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [offline, setOffline] = useState(false);
   const [cameraLive, setCameraLive] = useState(false);
@@ -52,11 +54,13 @@ function App() {
         <p className="assistant-name">Ingram Makerspace Assistant</p>
         {access.session?.role === 'staff' ? <section aria-label="Staff workspace">
           {!access.busy && <StaffHistory key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} />}
+          {!access.busy && <StaffFaces key={`face-${access.session.csrfToken}`} session={access.session} onSessionInvalid={access.invalidate} />}
           <p className="note">Begin signs staff out and starts a new visitor session.</p>
           <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button>
-        </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm onCameraChange={setCameraLive} key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
+        </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm onCameraChange={setCameraLive} key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'face' && access.session?.role === 'kiosk' ? <FaceCheckin key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onCameraChange={setCameraLive} onManual={() => setScreen('checkin')} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
           <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('question')}>Ask a question<span>Approved document evidence</span></button></div>
+          {face.enabled && access.session?.role === 'kiosk' && <><button className="back" disabled={access.busy || !face.ready} onClick={() => setScreen('face')}>Returning visitor face check-in</button>{!face.ready && <p>Face check-in unavailable. Manual check-in remains available.</p>}<FaceWithdrawal key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} /></>}
           <p>Check in, look up approved document evidence, or speak with Makerspace staff for help.</p>
           <button className="back" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(false); } }}>Back to welcome</button>
         </section>}

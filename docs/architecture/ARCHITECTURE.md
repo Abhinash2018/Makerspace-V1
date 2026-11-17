@@ -44,7 +44,7 @@ MS-006 adds optional consented visit photos owned only by attendance: private no
 | Attendance | Health/readiness, self-reported visits, idempotency/retention, protected staff history/export | Consented visit photos | Attendance DB; private photo directory added later |
 | Knowledge | Health/readiness, Ollama adapter and diagnostics | Approved document ingestion, retrieval, answer orchestration and citations | Knowledge DB, document files and derived index |
 | Ollama | Local inference runtime | Chat generation and local text embeddings | Downloaded model files; no authoritative attendance data |
-| Face service, later | Not scaffolded or running now | Opt-in enrollment, template matching, expiry/revocation | Separate encrypted template store |
+| Optional face service (MS-007) | Separate loopback CPU matching process, disabled by default | Explicit enrollment, withdrawal and scoped match consumption through HTTP | Separate AES-GCM-encrypted enrollment store, key and pinned local model files |
 
 Do not share a database or import another service's repository classes. A service may share API schemas, request IDs, and logging helpers. Shared types do not transfer data ownership. Use opaque IDs for references across services; no cross-service foreign keys or SQL joins.
 
@@ -65,7 +65,7 @@ flowchart TD
     F -.-> A
 ```
 
-The future Face → Attendance edge is a narrow authenticated API call to create an idempotent visit after an allowed match. It is not direct database access. Design its signed/short-lived identity proof and failure handling in the face task before implementation. Optional voice is an adapter inside knowledge initially; split a voice worker only if CPU/GPU load or process isolation justifies it.
+MS-007 implements two narrow authenticated HTTP contracts: face obtains original manual-visit identity from attendance, and attendance consumes a short-lived scoped face ticket before writing its own visit transaction. Neither service imports the other's database or repository. Exact retained attendance receipts remain retryable after ticket expiry or face outage; different tickets and manual/face attempts conflict. The optional face service owns encrypted templates, consent expiry/revocation and pinned local models. It runs inference only in bounded short-lived CPU workers with native telemetry explicitly disabled before launch. Shared packages contain strict wire schemas and signing/HTTP helpers only. Optional voice remains a later task.
 
 ## Interfaces and network boundaries
 

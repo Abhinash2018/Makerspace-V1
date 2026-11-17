@@ -59,6 +59,10 @@ MS-003 adds explicit `pnpm knowledge configure`, `ingest --approved`, `status` a
 
 Staff sessions now show protected paginated visit history with explicit Chicago-date filters, retained self-reported identity and CSV export. Logout/visitor reset/expiry clears rows and pending downloads; history works without AI. Read [staff history setup](../docs/LOCAL_SETUP.md#staff-visit-history-and-export-ms-005) for cursor/export bounds, privacy and spreadsheet limits. [MS-005 evidence](../docs/tasks/MS-005-staff-history.md) records 121 passing automated cases and final source/visual checks; actual spreadsheet apps and unrun platforms are kept separate.
 
+## Optional local face check-in (MS-007)
+
+Face matching is a fourth, optional loopback service on port 3003. It is disabled by default (`FACE_ENABLED=0`); ordinary manual attendance, photos, history and Ask remain independent. Read the [face setup runbook](../docs/LOCAL_SETUP.md#optional-local-face-check-in-ms-007) before explicitly configuring the pinned local CPU models, key and migrations. Enrollment starts only after a confirmed manual visit and separate unchecked consent. Visit photos never enroll anyone automatically. Matches are fallible self-reported associations, with no liveness, university verification or equipment-access claim. The [task evidence](../docs/tasks/MS-007-face-checkin.md) separates synthetic model/browser checks from real-device calibration and deployment.
+
 ## Local configuration
 
 Run `pnpm setup:local` once. It reads the committed `.env.example`, creates ignored `.env` with a random 32-byte token encoded as 64 hexadecimal characters, and creates `.runtime/attendance/` and `.runtime/knowledge/`. It does not use ambient environment overrides during generation, print the token, create databases, contact Ollama, or download anything. An existing `.env` of any kind causes a nonzero exit and is preserved. Concurrent setup attempts cannot replace the first file. Existing runtime contents are preserved; a failed filesystem operation may leave empty directories for manual inspection.
