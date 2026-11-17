@@ -4,5 +4,5 @@ if (!process.send) throw new Error('Face worker only.');
 process.once('disconnect', () => process.exit(1));
 process.once('message', async (value: { directory: string; bytes: Uint8Array }) => {
   try { const embedding = await extractEmbedding(value.directory, value.bytes); process.send!({ embedding }, () => process.exit(0)); }
-  catch (error) { process.send!({ error: error instanceof FaceFailure ? error.code : 'invalid_face' }, () => process.exit(1)); }
+  catch (error) { process.send!({ error: error instanceof FaceFailure ? error.code : 'face_unavailable' }, () => process.exit(1)); }
 });

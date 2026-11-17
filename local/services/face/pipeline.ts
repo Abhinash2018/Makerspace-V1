@@ -62,16 +62,19 @@ export function alignFace(rgb: Uint8Array, points: number[][]) {
   return output;
 }
 export async function extractEmbedding(directory: string, bytes: Uint8Array) {
+  if (bytes.length < 4 || bytes.length > 524288 || bytes[0] !== 255 || bytes[1] !== 216) throw new FaceFailure('invalid_face');
   process.env.ORT_DISABLE_TELEMETRY = '1';
   const runtime = await import('onnxruntime-node');
   runtime.env.logLevel = 'fatal';
-  if (bytes.length < 4 || bytes.length > 524288 || bytes[0] !== 255 || bytes[1] !== 216) throw new FaceFailure('invalid_face');
   sharp.cache(false); sharp.concurrency(1);
   const settings = loadFaceSettings(directory);
-  const image = sharp(Buffer.from(bytes), { limitInputPixels: 4000000, failOn: 'warning' });
-  const meta = await image.metadata();
-  if (meta.format !== 'jpeg' || !meta.width || !meta.height || meta.width > 2048 || meta.height > 2048 || Math.min(meta.width, meta.height) < 64 || (meta.pages ?? 1) !== 1) throw new FaceFailure('invalid_face');
-  const rgb = await image.rotate().resize(640, 640, { fit: 'contain', position: 'northwest', background: '#000000' }).removeAlpha().toColourspace('srgb').raw().toBuffer();
+  let rgb: Buffer;
+  try {
+    const image = sharp(Buffer.from(bytes), { limitInputPixels: 4000000, failOn: 'warning' });
+    const meta = await image.metadata();
+    if (meta.format !== 'jpeg' || !meta.width || !meta.height || meta.width > 2048 || meta.height > 2048 || Math.min(meta.width, meta.height) < 64 || (meta.pages ?? 1) !== 1) throw new FaceFailure('invalid_face');
+    rgb = await image.rotate().resize(640, 640, { fit: 'contain', position: 'northwest', background: '#000000' }).removeAlpha().toColourspace('srgb').raw().toBuffer();
+  } catch { throw new FaceFailure('invalid_face'); }
   const options: ort.InferenceSession.SessionOptions = { executionProviders: ['cpu'], intraOpNumThreads: 2, interOpNumThreads: 1, executionMode: 'sequential', logSeverityLevel: 4 };
   const detector = await runtime.InferenceSession.create(settings.detector, options);
   const recognizer = await runtime.InferenceSession.create(settings.recognizer, options);
