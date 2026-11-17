@@ -16,11 +16,12 @@ test('defaults are loopback-only; no model is a valid configuration', (t) => {
   const root = fixture(t);
   const config = parseConfiguration(environment, root);
   assert.equal(config.host, '127.0.0.1');
-  assert.deepEqual(config.ports, { gateway: 3000, attendance: 3001, knowledge: 3002, kiosk: 5173 });
+  assert.deepEqual(config.ports, { gateway: 3000, attendance: 3001, knowledge: 3002, face: 3003, kiosk: 5173 });
   assert.deepEqual(config.urls, {
-    attendance: 'http://127.0.0.1:3001', knowledge: 'http://127.0.0.1:3002', ollama: 'http://127.0.0.1:11434',
+    attendance: 'http://127.0.0.1:3001', knowledge: 'http://127.0.0.1:3002', face: 'http://127.0.0.1:3003', ollama: 'http://127.0.0.1:11434',
   });
   assert.equal(config.model, null);
+  assert.equal(config.faceEnabled, false);
   assert.equal(config.runtime.attendance, path.join(root, '.runtime/attendance'));
   assert.notEqual(config.runtime.attendance, config.runtime.knowledge);
   assert.deepEqual(environment, { INTERNAL_SERVICE_TOKEN: syntheticToken });
@@ -30,6 +31,7 @@ test('invalid binding, ports, token, model and log level fail without echoing va
   const root = fixture(t);
   const cases = [
     { APP_HOST: '0.0.0.0' }, { APP_HOST: 'localhost' },
+    { FACE_ENABLED: 'true' }, { FACE_ENABLED: '' }, { FACE_PORT: '0' },
     ...['0', '65536', '-1', '3e3', '03000', '3000.5', '', ' 3000'].map(GATEWAY_PORT => ({ GATEWAY_PORT })),
     { INTERNAL_SERVICE_TOKEN: '' }, { INTERNAL_SERVICE_TOKEN: 'synthetic-secret-do-not-echo' },
     { OLLAMA_CHAT_MODEL: 'https://remote.invalid/model' }, { OLLAMA_CHAT_MODEL: 'model with spaces' },
@@ -57,7 +59,7 @@ test('service and Ollama URLs reject aliases, remote origins and URL tricks', (t
     'http://127.0.0.1:65536', 'http://127.0.0.1:0', 'http://127.0.0.1:011434',
     'http://%31%32%37.0.0.1:11434', 'http://127.0.0.1:11434\\@remote.invalid',
   ];
-  for (const key of ['ATTENDANCE_URL', 'KNOWLEDGE_URL', 'OLLAMA_BASE_URL']) {
+  for (const key of ['ATTENDANCE_URL', 'KNOWLEDGE_URL', 'FACE_URL', 'OLLAMA_BASE_URL']) {
     for (const value of unsafe) assert.throws(() => parseConfiguration({ ...environment, [key]: value }, root), ConfigurationError);
   }
 });
@@ -67,8 +69,10 @@ test('ports match service URLs and cannot collide with services, Vite or Ollama'
   for (const changes of [
     { ATTENDANCE_URL: 'http://127.0.0.1:3005' },
     { KNOWLEDGE_URL: 'http://127.0.0.1:3005' },
+    { FACE_URL: 'http://127.0.0.1:3005' },
     { GATEWAY_PORT: '3001' }, { GATEWAY_PORT: '5173' }, { GATEWAY_PORT: '11434' },
     { ATTENDANCE_PORT: '3002', ATTENDANCE_URL: 'http://127.0.0.1:3002' },
+    { FACE_PORT: '5173', FACE_URL: 'http://127.0.0.1:5173' },
   ]) assert.throws(() => parseConfiguration({ ...environment, ...changes }, root), ConfigurationError);
   const config = parseConfiguration({
     ...environment, ATTENDANCE_PORT: '3101', ATTENDANCE_URL: 'http://127.0.0.1:3101/',

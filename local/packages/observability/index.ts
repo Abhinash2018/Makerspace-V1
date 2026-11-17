@@ -14,7 +14,7 @@ export function logEvent(event: Event, context: Record<string, unknown>, level =
   if (level === 'silent' || !events.includes(event)) return;
   const failed = event === 'startup_failed' || event === 'maintenance_failed';
   const safe: Record<string, unknown> = { time: new Date().toISOString(), level: failed ? 'error' : 'info', event };
-  if (['gateway', 'attendance', 'knowledge', 'launcher'].includes(String(context.service))) safe.service = context.service;
+  if (['gateway', 'attendance', 'knowledge', 'face', 'launcher'].includes(String(context.service))) safe.service = context.service;
   if (typeof context.requestId === 'string' && uuid.test(context.requestId)) safe.requestId = context.requestId;
   if (typeof context.statusCode === 'number' && Number.isInteger(context.statusCode) && context.statusCode >= 100 && context.statusCode <= 599) safe.statusCode = context.statusCode;
   if (level === 'fatal' || (level === 'error' && !failed) || (level === 'warn' && !failed)) return;
@@ -37,6 +37,10 @@ export const errorMessages = {
   photo_unavailable: 'Photo could not be confirmed. Retry the same capture or ask staff.',
   photo_not_found: 'No eligible photo or visit was found.',
   photo_conflict: 'A photo was already saved or consent was withdrawn for this visit.',
+  face_unavailable: 'Face check-in is unavailable. Use manual check-in.',
+  invalid_face: 'Capture one clearly lit face or use manual check-in.',
+  face_conflict: 'Enrollment conflicts with existing or withdrawn consent. Ask staff.',
+  face_not_found: 'No eligible enrollment or original visit was found.',
 } as const;
 export function errorBody(code: keyof typeof errorMessages, id: string) {
   return { error: { code, message: errorMessages[code], requestId: id } };

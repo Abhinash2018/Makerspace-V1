@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const requestIdSchema = z.uuid();
-export const serviceSchema = z.enum(['gateway', 'attendance', 'knowledge']);
+export const serviceSchema = z.enum(['gateway', 'attendance', 'knowledge', 'face']);
 export const modelCodeSchema = z.enum([
   'ready', 'model_not_configured', 'runtime_unavailable', 'model_missing', 'timeout',
   'invalid_response', 'response_too_large', 'redirect_rejected', 'cancelled', 'http_error', 'cloud_model_rejected',
@@ -16,7 +16,7 @@ export const readySchema = z.strictObject({
 export const errorSchema = z.strictObject({
   error: z.strictObject({
     code: z.enum(['not_found', 'unauthorized', 'forbidden_host', 'forbidden_origin', 'bad_request', 'internal_error', 'request_too_large',
-      'forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity', 'idempotency_conflict', 'attendance_unavailable', 'knowledge_unavailable', 'history_unavailable', 'export_too_large', 'invalid_photo', 'photo_unavailable', 'photo_not_found', 'photo_conflict']),
+      'forbidden_csrf', 'forbidden_role', 'rate_limited', 'auth_unavailable', 'session_capacity', 'idempotency_conflict', 'attendance_unavailable', 'knowledge_unavailable', 'history_unavailable', 'export_too_large', 'invalid_photo', 'photo_unavailable', 'photo_not_found', 'photo_conflict', 'face_unavailable', 'invalid_face', 'face_conflict', 'face_not_found']),
     message: z.string().min(1).max(100), requestId: requestIdSchema,
   }),
 });

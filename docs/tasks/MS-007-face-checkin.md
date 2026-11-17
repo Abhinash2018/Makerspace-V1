@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress — specification and dependency inspection |
+| Status | In progress — implementation and final acceptance |
 | Branch | `feat/MS-007-face-checkin` |
 | Dependencies | MS-002, MS-006; main `4d4028d13a16c83706a373b642e7774ba5083e11` |
 | Owner | Abinash Ghimire; Codex implements authorized backlog |
@@ -34,7 +34,7 @@ Pinned OpenCV Zoo revision `48b10fa505aeb51fbd127fc60a5c660040e823b7` provides:
 | `face_detection_yunet_2023mar.onnx` | 232589 | `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` | MIT (Shiqi Yu) |
 | `face_recognition_sface_2021dec.onnx` | 38696353 | `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79` | Apache-2.0 |
 
-Use fixed YuNet 320 x 320 BGR float input and its twelve stride heads, deterministic score/NMS decoding, five-landmark similarity alignment and 112 x 112 RGB float input to SFace. The SFace graph accepts raw pixel values; do not invent external mean/scale normalization. Normalize its finite 128-dimensional output before cosine comparisons. Verify actual tensor names/shapes/dimension with the downloaded pinned assets before finalizing contracts; refuse mismatch instead of adapting silently.
+Use fixed YuNet 640 x 640 BGR float input and its twelve stride heads, deterministic score/NMS decoding, five-landmark similarity alignment and 112 x 112 RGB float input to SFace. Native inspection on 17 November 2026 found that the exact pinned detector has static `[1,3,640,640]` input; the original draft's 320 assumption was rejected by ONNX Runtime. This documented correction changes the fixed preprocessing identity; model bytes remain unchanged. The SFace graph accepts raw pixel values; do not invent external mean/scale normalization. Normalize its finite 128-dimensional output before cosine comparisons. Detector input is `input`, stride outputs are `cls/obj/bbox/kps_{8,16,32}`; SFace is `data` -> `fc1`, `[1,128]`. Refuse mismatches instead of adapting silently.
 
 Each enrollment/match uses a short-lived CPU-only child with filtered environment, no stdout/stderr/body logs, one active operation/no queue, 12-second parent kill budget, bounded JS heap and two native threads. Input is JPEG only, at most 512 KiB/4 million pixels/2048 per dimension; never accept a path/URL from HTTP. Auto-orient, decode to bounded pixels, reject zero/multiple/low-confidence/small faces, invalid landmarks/alignment and clearly inadequate brightness/contrast. No original/crop is persisted. Native memory and presentation attacks are not completely bounded/prevented by these guards.
 
@@ -64,11 +64,11 @@ Use fixed failures/no-match labels, six enrollment/match attempts per minute, se
 
 | Group | Outcome | Relevant verification | State |
 | --- | --- | --- | --- |
-| 1 | Specification/model/license/previous-task handoff | Read baseline; pin hashes; docs/source audit | In progress |
-| 2 | Local dependencies/model settings/CPU pipeline | Native import, frozen offline install, actual synthetic detection/embedding and rejection | Planned |
-| 3 | Encrypted repository/consent/migration/cleanup | Key/tamper/privacy, idempotency/duplicate/quota/revocation/expiry/ambiguity | Planned |
-| 4 | Optional process and authenticated contracts | Loopback/config/launcher, role/CSRF/limits, signed scope/consume/receipt retries | Planned |
-| 5 | Explicit enrollment/match/withdraw/staff UI | Synthetic camera lifecycle/manual fallback/private state clearing | Planned |
+| 1 | Specification/model/license/previous-task handoff | Read baseline; pin hashes; docs/source audit | Models/licenses inspected; final source audit pending |
+| 2 | Local dependencies/model settings/CPU pipeline | Native import, frozen offline install, actual synthetic detection/embedding and rejection | Native CPU acceptance passed; fresh frozen install pending |
+| 3 | Encrypted repository/consent/migration/cleanup | Key/tamper/privacy, idempotency/duplicate/quota/revocation/expiry/ambiguity | Implemented; focused tests passed |
+| 4 | Optional process and authenticated contracts | Loopback/config/launcher, role/CSRF/limits, signed scope/consume/receipt retries | Implemented; HTTP tests passed; process regression pending |
+| 5 | Explicit enrollment/match/withdraw/staff UI | Synthetic camera lifecycle/manual fallback/private state clearing | Implemented; synthetic-camera browser/desktop/mobile review passed |
 | 6 | Runbook/full acceptance/rebase/squash | Full regressions/static/build, real synthetic model evaluation, visual/source audits | Planned |
 
 - [ ] Explicit independent face consent precedes enrollment/camera; manual/photo flows never enroll automatically.
@@ -80,6 +80,18 @@ Use fixed failures/no-match labels, six enrollment/match attempts per minute, se
 - [ ] Actual automated/native/browser/visual/source evidence, grouped pushes and one main squash support acceptance with unrun device/deployment limits recorded.
 
 ## Evidence and rollback
+
+17 November 2026 implementation checkpoint: pinned ONNX Runtime Node 1.31.1 package metadata, install script, and binary inventory reviewed before installation. Its archive contains Windows CPU DLL/binding; the postinstall's optional Linux CUDA download is unnecessary. Installed only in the isolated verification copy, with scripts disabled and the existing `better-sqlite3` build allowlist unchanged. Lock adds the face importer and 15 dependency resolutions; unrelated pins are preserved. The original checkout's staged/incomplete dependency tree is not repaired.
+
+Native CPU inspection found static detector `[1,3,640,640]`, the twelve expected heads, and SFace `data` `[1,3,112,112]` -> `fc1` `[1,128]`. The first 320-input diagnostic correctly failed; the fixed preprocessing/specification was corrected explicitly. The first development diagnostic also exposed ONNX's default telemetry warning. Runtime workers now receive `ORT_DISABLE_TELEMETRY=1` in their filtered environment before launch, and the pipeline sets it before dynamically importing the native runtime. No telemetry dependency or model downloading code is added. See [ONNX privacy controls](https://github.com/microsoft/onnxruntime/blob/main/docs/Privacy.md). Fresh administrator-only network isolation remains unrun.
+
+`face:acceptance --approved --detector <pinned local file> --recognizer <pinned local file>` passed using the committed generated-fictional-face fixture, owned temporary settings and short-lived CPU workers: 128 dimensions; transformed same-image cosine `0.9903901155361176`; different fictional faces `0.2992391805465284`; blank/multiple/malformed input rejection; cancellation/deadline and concurrent-operation refusal. The exact threshold remains 0.65 with 0.10 separation. This two-identity fixture is regression evidence, not real-world accuracy or presentation-attack validation. Fixture provenance and prompt are in `local/tests/fixtures/face-synthetic.md`.
+
+Focused repository/ticket/attendance tests pass, including ciphertext and metadata authentication, wrong keys, duplicate/changed-image conflicts, withdrawal tombstones, read-time expiry/cleanup, pagination, ticket signature/scope/time/restart binding and ambiguity. The HTTP test proves original manual proof, role/CSRF/internal-token checks, opaque match responses, attendance-owned commits, and exact lost-success replay after face outage and ticket expiry. Full unit run: 112 cases passed. Tooling's expected port/URL shape was extended for optional face while preserving all refusal checks; 16 tooling cases pass. Lint/typecheck pass at this checkpoint.
+
+Synthetic-camera browser test passed: separate unchecked consent, explicit start/capture/save, exact enrollment/check-in retries after lost replies, private withdrawal code clearing, delayed camera acquisition after cancellation, denial/manual fallback and protected staff UI lifecycle. Desktop/mobile screenshots were visually inspected with no horizontal overflow. This browser test mocks face responses to isolate UI lifecycle; it is not presented as real model/camera accuracy. A process regression attempt encountered the running preview on Vite port 5173; the preview was stopped and the unchanged check is being rerun. No failing check was disabled.
+
+Storage/contract choices: AES-256-GCM authenticates row identity/generation/model/time plus keyed linkage fields; keys/settings are immutable and changes fail closed. Withdrawal codes are 256-bit pseudorandom HMAC outputs keyed by the private random key and opaque random enrollment UUID; only a separate keyed digest is stored, allowing the exact same private code on an idempotent receipt without plaintext storage. Active gallery quota is 1,000; withdrawal-before-publication tombstones are separately bounded to 10,000. Attendance migration 4 appends `face_attempts` with cascade cleanup and leaves existing receipt shape unchanged; ordinary manual retries cannot reinterpret face receipts. Shared bounded HTTP adds fixed-path DELETE support for protected staff revocation.
 
 14 November 2026: specification and public metadata/license/LFS inspection only. Branch created from the exact accepted MS-006 main squash. No face dependency installed, model downloaded, biometric implemented or accuracy test passed yet. Model output dimension/preprocessing/native package behavior remain verification items. Do not label this feature production-ready based on synthetic results. Reverting code must preserve encrypted DB/key/model settings together; never regenerate a key or reset a DB to bypass readiness.
 

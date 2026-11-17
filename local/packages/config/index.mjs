@@ -10,6 +10,9 @@ export const defaults = Object.freeze({
   GATEWAY_PORT: '3000',
   ATTENDANCE_PORT: '3001',
   KNOWLEDGE_PORT: '3002',
+  FACE_ENABLED: '0',
+  FACE_PORT: '3003',
+  FACE_URL: 'http://127.0.0.1:3003',
   ATTENDANCE_URL: 'http://127.0.0.1:3001',
   KNOWLEDGE_URL: 'http://127.0.0.1:3002',
   OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
@@ -62,13 +65,17 @@ export function parseConfiguration(environment, root = workspaceRoot) {
     gateway: port(settings.GATEWAY_PORT, 'GATEWAY_PORT'),
     attendance: port(settings.ATTENDANCE_PORT, 'ATTENDANCE_PORT'),
     knowledge: port(settings.KNOWLEDGE_PORT, 'KNOWLEDGE_PORT'),
+    face: port(settings.FACE_PORT, 'FACE_PORT'),
     kiosk: 5173,
   };
   const attendance = loopbackUrl(settings.ATTENDANCE_URL, 'ATTENDANCE_URL');
   const knowledge = loopbackUrl(settings.KNOWLEDGE_URL, 'KNOWLEDGE_URL');
+  const face = loopbackUrl(settings.FACE_URL, 'FACE_URL');
+  if (!['0', '1'].includes(settings.FACE_ENABLED)) invalid('FACE_ENABLED', 'use 0 or 1.');
   const ollama = loopbackUrl(settings.OLLAMA_BASE_URL, 'OLLAMA_BASE_URL');
   if (attendance.port !== ports.attendance) invalid('ATTENDANCE_URL', 'port must match ATTENDANCE_PORT.');
   if (knowledge.port !== ports.knowledge) invalid('KNOWLEDGE_URL', 'port must match KNOWLEDGE_PORT.');
+  if (face.port !== ports.face) invalid('FACE_URL', 'port must match FACE_PORT.');
   const allPorts = [...Object.values(ports), ollama.port];
   if (new Set(allPorts).size !== allPorts.length) {
     invalid('Ports', 'gateway, attendance, knowledge, Vite (5173) and Ollama must use distinct ports.');
@@ -97,7 +104,8 @@ export function parseConfiguration(environment, root = workspaceRoot) {
   return {
     host: '127.0.0.1',
     ports,
-    urls: { attendance: attendance.origin, knowledge: knowledge.origin, ollama: ollama.origin },
+    urls: { attendance: attendance.origin, knowledge: knowledge.origin, ollama: ollama.origin, face: face.origin },
+    faceEnabled: settings.FACE_ENABLED === '1',
     model: model || null,
     serviceToken: settings.INTERNAL_SERVICE_TOKEN,
     logLevel: settings.LOG_LEVEL,
@@ -105,6 +113,7 @@ export function parseConfiguration(environment, root = workspaceRoot) {
       root: runtimeRoot,
       attendance: path.join(runtimeRoot, 'attendance'),
       knowledge: path.join(runtimeRoot, 'knowledge'),
+      face: path.join(runtimeRoot, 'face'),
     },
   };
 }
@@ -171,6 +180,7 @@ export function loadConfiguration(root = workspaceRoot, environment = process.en
   try {
     checkRuntimePath(root, config.runtime.attendance);
     checkRuntimePath(root, config.runtime.knowledge);
+    checkRuntimePath(root, config.runtime.face);
   } catch (error) {
     if (error instanceof ConfigurationError) throw error;
     throw new ConfigurationError('Cannot inspect runtime directories; check local file access.');
