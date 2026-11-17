@@ -72,16 +72,3 @@ it('enforces read-time expiry before cleanup and bounded protected pagination', 
   } finally { f.dispose(); }
 });
 
-it('refuses enrollment beyond the 1000-template gallery quota without replacing existing consent', () => {
-  const f = fixture(); let seed = 0x12345678;
-  const vector = () => Array.from({ length: 128 }, () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 0x100000000 - 0.5; });
-  try {
-    for (let index = 0; index < 1000; index++) f.repo.enroll(proof(), image, { name: 'Synthetic quota visitor', netId: `quota${index}` }, vector());
-    const first = f.repo.list().records[0]!;
-    expect(() => f.repo.enroll(proof(), image, { name: 'Synthetic over-quota visitor', netId: 'quotaoverflow' }, vector())).toThrow('face_unavailable');
-    const db = openFace(f.root); expect(db.prepare('SELECT count(*) AS n FROM enrollments WHERE ciphertext IS NOT NULL').get()).toEqual({ n: 1000 }); db.close();
-    expect(f.repo.list().records[0]!.enrollmentId).toBe(first.enrollmentId);
-  } finally { f.dispose(); }
-// Building a real 1000-row encrypted gallery repeats the O(n) duplicate check;
-// this cumulative fixture budget is separate from each inference worker's 12s limit.
-}, 180000);

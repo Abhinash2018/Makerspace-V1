@@ -49,6 +49,8 @@ Playwright browser installation is a one-time development prerequisite. On Linux
 
 `check:toolchain` rejects the wrong Node version, mismatched manifest pins, and the wrong package manager when invoked through a package-manager script. The same guard runs during installation. Direct `node scripts/check-toolchain.mjs` verifies Node and pin consistency; use `pnpm check:toolchain` to also verify the active pnpm. A missing pnpm command means the prerequisite still needs installing through your approved method.
 
+`pnpm test` automatically runs tooling, ordinary unit tests, and then the mandatory face-gallery capacity phase. The 1,000-enrollment fixture runs alone to avoid competing with native PDF/photo worker deadlines. `pnpm test:capacity` is available for a focused rerun; it is already included in the full test command.
+
 `lint` checks JavaScript and TypeScript and fails on warnings. `typecheck` checks tooling, services, UI and tests without emitting output, enforcing syntax that Node can erase natively. Node 24 runs backend TypeScript directly; Vite bundles the kiosk. Tests use synthetic temporary workspaces and never your workspace .env, credentials or runtime DBs. MS-003 adds parser, embedding, atomic index/import and native operator coverage; exact final counts/evidence are in [MS-003](../docs/tasks/MS-003-document-ingestion.md). CI defines Windows/Linux jobs; current remote results and the Windows short-path development fix are recorded in [MS-007](../docs/tasks/MS-007-face-checkin.md). The working checkout has an incomplete installed dependency tree; local recorded passes use the separate frozen offline-installed verification copy without changing pre-existing staging.
 
 ## Approved local documents
