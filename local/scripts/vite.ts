@@ -1,8 +1,11 @@
 import { createServer } from 'vite';
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import { workspaceRoot } from '../packages/config/index.mjs';
 
-const server = await createServer({ root: path.join(workspaceRoot, 'apps/kiosk') });
+// Vite deliberately rejects Windows 8.3 aliases in served paths. Resolve the
+// real kiosk directory before Vite derives request filenames from this root.
+const server = await createServer({ root: realpathSync.native(path.join(workspaceRoot, 'apps/kiosk')) });
 const stop = async () => { await server.close(); if (process.connected) process.disconnect(); };
 process.once('SIGINT', () => { void stop(); });
 process.once('SIGTERM', () => { void stop(); });

@@ -2,7 +2,7 @@
 
 These rules apply to the new `local/` project. Honor applicable repository instructions too.
 
-1. Read the current task file and architecture before changing code. Work on one task branch. On 13–14 November 2026 the owner authorized finishing tasks and continuing the backlog in dependency order, separate task branches, grouped commits, rebase and one main squash/task, with verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Current implementation scope is MS-006 only; see `docs/tasks/MS-006-optional-photo.md`. Deployment remains separate.
+1. Read the current task file and architecture before changing code. Work on one task branch. On 13–14 November 2026 the owner authorized finishing tasks and continuing the backlog in dependency order, separate task branches, grouped commits, rebase and one main squash/task, with verified pushes to `https://github.com/Abhinash2018/Makerspace-V1`. Current implementation scope is MS-007 only; see `docs/tasks/MS-007-face-checkin.md`. Deployment remains separate.
 2. Inspect the worktree, current branch, manifests, and existing scripts first. Preserve unrelated edits and the legacy app. Never delete history, replace main, or bulk-rewrite the old application.
 3. Keep gateway, attendance, and knowledge in separate processes with explicit HTTP contracts. Shared packages contain schemas and small technical helpers, never domain services or database models.
 4. All runtime dependencies must be local. No OpenAI, ElevenLabs, Cloudflare D1/R2, hosted vector databases, CDN assets, cloud model fallback, or analytics in the new runtime.

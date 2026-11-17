@@ -27,7 +27,7 @@ export async function stopChild(child: ChildProcess) {
 }
 export async function launch(mode: 'start' | 'dev', root = workspaceRoot, environment = process.env, signal?: AbortSignal) {
   const config = loadConfiguration(root, environment);
-  const ports = [config.ports.gateway, config.ports.attendance, config.ports.knowledge, ...(mode === 'dev' ? [5173] : [])];
+  const ports = [config.ports.gateway, config.ports.attendance, config.ports.knowledge, ...(config.faceEnabled ? [config.ports.face] : []), ...(mode === 'dev' ? [5173] : [])];
   await checkPorts(ports);
   if (mode === 'start' && !existsSync(path.join(root, 'apps/kiosk/dist/index.html'))) throw new Error('Kiosk build missing. Run pnpm build.');
   const children: Record<string, ChildProcess> = {};
@@ -36,7 +36,7 @@ export async function launch(mode: 'start' | 'dev', root = workspaceRoot, enviro
   signal?.addEventListener('abort', () => { void stop(); }, { once: true });
   try {
     if (signal?.aborted) throw new Error('Startup cancelled.');
-    for (const name of ['attendance', 'knowledge', 'gateway', ...(mode === 'dev' ? ['kiosk'] : [])]) {
+    for (const name of ['attendance', 'knowledge', 'gateway', ...(config.faceEnabled ? ['face'] : []), ...(mode === 'dev' ? ['kiosk'] : [])]) {
       const file = name === 'kiosk' ? 'scripts/vite.ts' : `services/${name}/index.ts`;
       const child = fork(path.join(root, file), name === 'gateway' && mode === 'dev' ? ['--dev'] : [], { cwd: root, env: environment, stdio: ['ignore', 'inherit', 'inherit', 'ipc'] });
       children[name] = child;

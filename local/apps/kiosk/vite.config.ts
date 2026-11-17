@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { realpathSync } from 'node:fs';
 import { loadConfiguration, workspaceRoot } from '../../packages/config/index.mjs';
 
 export default defineConfig(({ command }) => {
@@ -6,7 +7,7 @@ export default defineConfig(({ command }) => {
   return {
     server: {
       host: '127.0.0.1', port: 5173, strictPort: true, cors: false,
-      fs: { allow: [workspaceRoot], deny: ['.env', '.env.*', '**/*.{crt,pem}', '**/.git/**', '**/.runtime/**'] },
+      fs: { allow: [realpathSync.native(workspaceRoot)], deny: ['.env', '.env.*', '**/*.{crt,pem}', '**/.git/**', '**/.runtime/**'] },
       proxy: config ? { '/api': { target: `http://127.0.0.1:${config.ports.gateway}`, changeOrigin: true } } : {},
     },
     plugins: [{

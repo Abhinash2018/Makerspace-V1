@@ -1,6 +1,6 @@
 # Local Makerspace workspace
 
-The foundation provides a local kiosk, three independent services, owned SQLite migrations and Ollama diagnostics. MS-002 adds manual self-reported check-in with idempotent retry and retention; Ask remains upcoming. Automated Windows checks pass. MS-000 also recorded real CPU inference under application-scoped network isolation and Windows console Ctrl+C/restart; those earlier checks are not a new deployment test. Remote CI/Linux has not run.
+The workspace provides a local kiosk, independent gateway/attendance/knowledge services, owned SQLite migrations, manual self-reported visits, optional photos, protected staff history and approved-document questions. MS-007 adds a fourth optional local face service. Current automated and native evidence is recorded in the task files; Windows/Linux CI results are tracked on the MS-007 PR. MS-000's earlier CPU inference/network-isolation and console Ctrl+C checks are historical development evidence, not a new deployment test.
 
 MS-001 adds local staff sign-in/sign-out and automatic kiosk sessions with expiry, CSRF/Origin/role checks and request/login limits. Use `pnpm staff:provision` in an interactive terminal to create the optional private staff credential, then restart the gateway. No default password exists; kiosk/status work without one. Begin starts a fresh visitor session and signs staff out. See the [staff access runbook](../docs/LOCAL_SETUP.md#local-staff-access-ms-001) and [MS-001 evidence](../docs/tasks/MS-001-access-controls.md) for exact policies and limitations.
 
@@ -49,7 +49,9 @@ Playwright browser installation is a one-time development prerequisite. On Linux
 
 `check:toolchain` rejects the wrong Node version, mismatched manifest pins, and the wrong package manager when invoked through a package-manager script. The same guard runs during installation. Direct `node scripts/check-toolchain.mjs` verifies Node and pin consistency; use `pnpm check:toolchain` to also verify the active pnpm. A missing pnpm command means the prerequisite still needs installing through your approved method.
 
-`lint` checks JavaScript and TypeScript and fails on warnings. `typecheck` checks tooling, services, UI and tests without emitting output, enforcing syntax that Node can erase natively. Node 24 runs backend TypeScript directly; Vite bundles the kiosk. Tests use synthetic temporary workspaces and never your workspace .env, credentials or runtime DBs. MS-003 adds parser, embedding, atomic index/import and native operator coverage; exact final counts/evidence are in [MS-003](../docs/tasks/MS-003-document-ingestion.md). CI defines Windows/Linux jobs; remote execution/Linux remain unrun. The working checkout has an incomplete installed dependency tree; recorded passes use the separate frozen offline-installed verification copy without changing pre-existing staging.
+`pnpm test` automatically runs tooling, ordinary unit tests, and then the mandatory face-gallery capacity phase. The 1,000-enrollment fixture runs alone to avoid competing with native PDF/photo worker deadlines. `pnpm test:capacity` is available for a focused rerun; it is already included in the full test command.
+
+`lint` checks JavaScript and TypeScript and fails on warnings. `typecheck` checks tooling, services, UI and tests without emitting output, enforcing syntax that Node can erase natively. Node 24 runs backend TypeScript directly; Vite bundles the kiosk. Tests use synthetic temporary workspaces and never your workspace .env, credentials or runtime DBs. MS-003 adds parser, embedding, atomic index/import and native operator coverage; exact final counts/evidence are in [MS-003](../docs/tasks/MS-003-document-ingestion.md). CI defines Windows/Linux jobs; current remote results and the Windows short-path development fix are recorded in [MS-007](../docs/tasks/MS-007-face-checkin.md). The working checkout has an incomplete installed dependency tree; local recorded passes use the separate frozen offline-installed verification copy without changing pre-existing staging.
 
 ## Approved local documents
 
@@ -58,6 +60,10 @@ MS-003 adds explicit `pnpm knowledge configure`, `ingest --approved`, `status` a
 ## Staff visit history
 
 Staff sessions now show protected paginated visit history with explicit Chicago-date filters, retained self-reported identity and CSV export. Logout/visitor reset/expiry clears rows and pending downloads; history works without AI. Read [staff history setup](../docs/LOCAL_SETUP.md#staff-visit-history-and-export-ms-005) for cursor/export bounds, privacy and spreadsheet limits. [MS-005 evidence](../docs/tasks/MS-005-staff-history.md) records 121 passing automated cases and final source/visual checks; actual spreadsheet apps and unrun platforms are kept separate.
+
+## Optional local face check-in (MS-007)
+
+Face matching is a fourth, optional loopback service on port 3003. It is disabled by default (`FACE_ENABLED=0`); ordinary manual attendance, photos, history and Ask remain independent. Read the [face setup runbook](../docs/LOCAL_SETUP.md#optional-local-face-check-in-ms-007) before explicitly configuring the pinned local CPU models, key and migrations. Enrollment starts only after a confirmed manual visit and separate unchecked consent. Visit photos never enroll anyone automatically. Matches are fallible self-reported associations, with no liveness, university verification or equipment-access claim. The [task evidence](../docs/tasks/MS-007-face-checkin.md) separates synthetic model/browser checks from real-device calibration and deployment.
 
 ## Local configuration
 
@@ -87,4 +93,4 @@ Root `.gitignore` excludes local environment files, runtime databases, installed
 
 ## Verification at this checkpoint
 
-Native Windows lint, typecheck, unit, process integration, Chromium smoke and production build pass. Real qwen3:4b inference also passed with temporary outbound firewall rules on Node, Ollama and its model runner; loopback stayed available and all rules were removed. Windows console Ctrl+C was delivered through the OS console API, followed by port-release and restart checks; no manual keyboard press is claimed. Existing Ollama/models were reused and no drivers/global PATH settings changed. Remote CI/Linux remains unrun. Exact evidence is in [MS-000](../docs/tasks/MS-000-foundation.md#evidence-to-fill-during-implementation).
+At the MS-000 checkpoint, native Windows lint, typecheck, unit, process integration, Chromium smoke and production build passed. Real qwen3:4b inference also passed with temporary outbound firewall rules on Node, Ollama and its model runner; loopback stayed available and all rules were removed. Windows console Ctrl+C was delivered through the OS console API, followed by port-release and restart checks; no manual keyboard press is claimed. Existing Ollama/models were reused and no drivers/global PATH settings changed. Remote CI/Linux was unrun at that checkpoint; current matrix evidence is recorded with MS-007. Historical evidence is in [MS-000](../docs/tasks/MS-000-foundation.md#evidence-to-fill-during-implementation).

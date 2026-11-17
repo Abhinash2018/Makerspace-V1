@@ -4,6 +4,8 @@ Prepared for Abinash Ghimire • 6 November 2026
 
 ## Current status
 
+MS-006 landed and was pushed as main squash `4d4028d`, with nine grouped commits retained. MS-007 separately consented local face check-in is active on its own task branch. Four milestones remain through MS-010; physical device and deployment gates remain separate. See the [task index](docs/tasks/INDEX.md) for the current handoff; paragraphs below preserve earlier acceptance checkpoints.
+
 MS-006 optional visit photos are Windows-verified: separate consent, explicit camera/preview/save, sanitized private JPEGs, original-session ownership, protected staff viewing/removal and durable revocation/expiry cleanup. All 136 automated checks plus strict typecheck/lint/build pass; synthetic-camera desktop/mobile views were reviewed. The eight implementation groups are pushed; the final documentation/audit and main squash follow. See [MS-006](docs/tasks/MS-006-optional-photo.md) and the [photo runbook](docs/LOCAL_SETUP.md#optional-visit-photo-ms-006). No physical camera, operator records or deployment was used. MS-007 independent face consent/matching is next.
 
 MS-005 protected staff history is Windows-verified: Chicago-date filters, stable signed keyset pages, read-time retention and explicit bounded CSV export. Staff rows clear on logout/visitor reset/expiry; visitor sessions cannot list/export. All 121 automated checks plus lint/typecheck/build pass, and desktop/mobile views were reviewed. No new dependency/migration or operator record read. See [MS-005](docs/tasks/MS-005-staff-history.md) and [staff runbook](docs/LOCAL_SETUP.md#staff-visit-history-and-export-ms-005). Optional consented visit photos are next.
