@@ -13,8 +13,8 @@ it('owns visit storage, reruns safely and refuses to replace unfamiliar data', (
     migrate(root); migrate(root);
     expect(readiness(root)).toEqual({ ready: true, code: 'ready' });
     const db = new Database(path.join(root, 'attendance.sqlite'));
-    expect(db.prepare("SELECT count(*) AS n FROM sqlite_schema WHERE type='table'").get()).toEqual({ n: 5 });
-    expect(db.prepare('SELECT count(*) AS n FROM schema_migrations').get()).toEqual({ n: 3 });
+    expect(db.prepare("SELECT count(*) AS n FROM sqlite_schema WHERE type='table'").get()).toEqual({ n: 6 });
+    expect(db.prepare('SELECT count(*) AS n FROM schema_migrations').get()).toEqual({ n: 4 });
     db.pragma('application_id = 42'); db.close();
     expect(readiness(root).ready).toBe(false);
     expect(() => migrate(root)).toThrow();
@@ -59,8 +59,8 @@ it('upgrades only known version-1 metadata and preserves its original migration 
     const db = new Database(file);
     expect(db.prepare('SELECT * FROM schema_migrations WHERE version=1').get()).toEqual({ version: 1, name: 'attendance-foundation', applied_at: '2026-11-06T00:00:00.000Z' });
     expect(db.prepare('SELECT count(*) AS n FROM visits').get()).toEqual({ n: 0 });
-    db.pragma('user_version = 4'); db.close();
+    db.pragma('user_version = 5'); db.close();
     expect(() => migrate(root)).toThrow();
-    const preserved = new Database(file); expect(preserved.pragma('user_version', { simple: true })).toBe(4); preserved.close();
+    const preserved = new Database(file); expect(preserved.pragma('user_version', { simple: true })).toBe(5); preserved.close();
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

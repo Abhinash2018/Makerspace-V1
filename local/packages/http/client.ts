@@ -4,7 +4,7 @@ export class HttpFailure extends Error {
 }
 export type BoundedOptions = {
   timeoutMs?: number; maxBytes?: number; signal?: AbortSignal; headers?: Record<string, string>;
-  method?: 'GET' | 'POST'; body?: string;
+  method?: 'GET' | 'POST' | 'DELETE'; body?: string;
 };
 export async function boundedResponse(url: string, options: BoundedOptions & { acceptStatuses?: readonly number[] } = {}): Promise<{ statusCode: number; body: unknown }> {
   // Internal callers construct fixed paths from validated configuration only.

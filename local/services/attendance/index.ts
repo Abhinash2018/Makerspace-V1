@@ -9,10 +9,12 @@ import { errorBody, logEvent } from '../../packages/observability/index.ts';
 import { registerHistory } from './history-routes.ts';
 import { createPhotoRepository } from './photo-repository.ts';
 import { registerPhotoRoutes } from './photo-routes.ts';
+import { registerFaceAttendance } from './face-routes.ts';
 
 export function createAttendance(config: Configuration, now = Date.now) {
   const app = makeServer({ service: 'attendance', port: config.ports.attendance, token: config.serviceToken, logLevel: config.logLevel });
   registerHistory(app, config, now);
+  registerFaceAttendance(app, config, now);
   let maintenanceFailed = false;
   let photoMaintenanceFailed = false;
   const photos = createPhotoRepository(config.runtime.attendance, now);

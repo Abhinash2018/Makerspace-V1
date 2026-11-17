@@ -18,7 +18,7 @@ export async function runtimeFixture() {
     for (const item of ['package.json', '.env.example', 'tsconfig.json', 'tsconfig.base.json', 'packages', 'services', 'scripts', 'apps/kiosk']) {
       cpSync(path.join(workspaceRoot, item), path.join(root, item), { recursive: true, filter: source => path.basename(source) !== 'node_modules' && !source.endsWith('.test.ts') });
     }
-    for (const item of ['', 'packages/contracts', 'packages/http', 'services/attendance', 'services/knowledge', 'apps/kiosk']) {
+    for (const item of ['', 'packages/contracts', 'packages/http', 'services/attendance', 'services/knowledge', 'services/face', 'apps/kiosk']) {
       const source = path.join(workspaceRoot, item, 'node_modules');
       if (existsSync(source)) symlinkSync(source, path.join(root, item, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
     }
