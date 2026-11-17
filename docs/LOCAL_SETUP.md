@@ -1,6 +1,6 @@
 # Local setup and offline operating contract
 
-Status: MS-000 implementation, automated Windows checks, real CPU inference under application-scoped outbound firewall isolation, and Windows console Ctrl+C/restart checks pass. Linux/remote CI has not run; no deployment or real visitor workflow is enabled.
+Status: MS-000's Windows, CPU inference, outbound-isolation and console checks are historical development evidence. Current local checks and Windows/Linux CI outcomes are recorded with MS-007. Deployment and real visitor calibration remain separate.
 
 Project documentation lives in root `docs/`. Use the `local/` workspace and [its command guide](../local/README.md). Tested pins include Node `24.22.2`, pnpm `10.34.9`, TypeScript `5.9.3`, Fastify `5.12.8`, Zod `4.6.7`, better-sqlite3 `12.11.1`, React/React DOM `19.3.1`, Vite `8.3.7`, Vitest `5.1.0`, Playwright `1.65.0` and ESLint `10.14.0`. All package versions are fixed in manifests and the lockfile.
 
@@ -202,7 +202,7 @@ Explicit native development acceptance:
 pnpm face:acceptance --approved --detector "C:/approved/face_detection_yunet_2023mar.onnx" --recognizer "C:/approved/face_recognition_sface_2021dec.onnx"
 ```
 
-This uses only committed generated fictional faces and disposable storage. Tests cover real CPU detection/embedding, transformed/different/no/multiple faces, cancellation/concurrency/deadline, encrypted lifecycle, HTTP trust, lost replies and synthetic-camera UI. They do not establish real-world accuracy, fairness, physical-camera behavior, liveness or resistance to photo/video spoofing. Matches are fallible associations with self-reported identity, never university verification, equipment authorization, occupancy or door control. Institution-approved calibration and physical camera/Safari/iPad/Linux/network-isolation/deployment checks remain separate gates. See [MS-007 evidence](tasks/MS-007-face-checkin.md#evidence-and-rollback).
+This uses only committed generated fictional faces and disposable storage. Tests cover real CPU detection/embedding, transformed/different/no/multiple faces, cancellation/concurrency/deadline, encrypted lifecycle, HTTP trust, lost replies and synthetic-camera UI. They do not establish real-world accuracy, fairness, physical-camera behavior, liveness or resistance to photo/video spoofing. Matches are fallible associations with self-reported identity, never university verification, equipment authorization, occupancy or door control. Institution-approved calibration and physical camera/Safari/iPad/network-isolation/deployment checks remain separate gates. See [MS-007 evidence](tasks/MS-007-face-checkin.md#evidence-and-rollback).
 
 ## Before real operation
 
