@@ -56,5 +56,8 @@ it('enforces original manual proof, gateway role/CSRF, opaque match, consumption
     at += 30001; await face.close();
     const retry = await gateway.inject({ method: 'POST', url: '/api/v1/face/checkin', headers: browser, payload: checkin }); expect(retry.statusCode).toBe(200); expect(retry.json().visitId).toBe(saved.json().visitId); expect(retry.json().replayed).toBe(true);
     const manualConflict = await attendance.inject({ method: 'POST', url: '/internal/v1/visits', headers: { ...internal, host: `127.0.0.1:${config.ports.attendance}` }, payload: { name: 'Synthetic route visitor', netId: 'syntheticroute', sessionScope: scope, idempotencyKey: attempt } }); expect(manualConflict.statusCode).toBe(409);
+    const sixth = await gateway.inject({ method: 'POST', url: '/api/v1/face/match', headers: browser, payload: { image, idempotencyKey: randomUUID() } }); expect(sixth.statusCode).toBe(503);
+    const limited = await gateway.inject({ method: 'POST', url: '/api/v1/face/match', headers: browser, payload: { image, idempotencyKey: randomUUID() } }); expect(limited.statusCode).toBe(429);
+    const separateWithdrawal = await gateway.inject({ method: 'POST', url: '/api/v1/face/withdraw', headers: browser, payload: { code: 'invalid' } }); expect(separateWithdrawal.statusCode).toBe(503);
   } finally { await Promise.all([gateway.close(), face.close(), attendance.close()]); fixture.dispose(); }
 }, 20000);

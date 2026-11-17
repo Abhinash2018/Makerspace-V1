@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from '../../packages/http/server.ts';
 import type { Configuration } from '../../packages/contracts/index.ts';
-import { errorSchema, readySchema } from '../../packages/contracts/index.ts';
+import { errorSchema, readySchema, sessionRequestSchema } from '../../packages/contracts/index.ts';
 import { faceEnrollSchema, faceMatchSchema, faceCheckinSchema, faceWithdrawSchema, faceEnrollmentSchema, faceMatchResponseSchema, faceRemovedSchema, faceListQuerySchema, faceListSchema, faceStatusSchema } from '../../packages/contracts/face.ts';
 import { checkinResponseSchema } from '../../packages/contracts/checkin.ts';
 import { boundedResponse } from '../../packages/http/client.ts';
@@ -34,7 +34,7 @@ export function registerFace(app: FastifyInstance, config: Configuration, auth: 
       destination = `${config.urls.face}/internal/v1/face/enrollments${query.data.after ? `?after=${query.data.after}` : ''}`;
     } else if (action === 'remove') {
       const params = faceListQuerySchema.safeParse({ after: (req.params as { id: string }).id });
-      if (!params.success || Object.keys(req.body ?? {}).length !== 0) return reply.code(400).send(errorBody('bad_request', req.id));
+      if (!params.success || !sessionRequestSchema.safeParse(req.body).success) return reply.code(400).send(errorBody('bad_request', req.id));
       destination = `${config.urls.face}/internal/v1/face/enrollments/${params.data.after}`;
     } else {
       const parsed = (action === 'enroll' ? faceEnrollSchema : action === 'match' ? faceMatchSchema : action === 'checkin' ? faceCheckinSchema : faceWithdrawSchema).safeParse(req.body);
