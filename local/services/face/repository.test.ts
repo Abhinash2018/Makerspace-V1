@@ -71,4 +71,3 @@ it('enforces read-time expiry before cleanup and bounded protected pagination', 
     const db = openFace(f.root); db.pragma('user_version=2'); db.close(); expect(() => migrateFace(f.root)).toThrow();
   } finally { f.dispose(); }
 });
-
