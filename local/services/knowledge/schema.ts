@@ -33,3 +33,17 @@ export const knowledgeColumns: Record<string, string> = {
   document_indexes: 'index_key:TEXT,document_key:TEXT,version:INTEGER,chunk_count:INTEGER',
   document_chunks: 'index_key:TEXT,document_key:TEXT,version:INTEGER,ordinal:INTEGER,chunk_id:TEXT,page:INTEGER,text:TEXT,vector:BLOB',
 };
+
+// SQLite requires a table rebuild to expand a CHECK constraint. Child references
+// keep their original table name; migration disables FKs only around this transaction.
+export const ocrSchema = `
+CREATE TABLE document_versions_ocr (
+  document_key TEXT NOT NULL, version INTEGER NOT NULL CHECK(version BETWEEN 1 AND 10),
+  title TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 160), source_hash TEXT NOT NULL CHECK(length(source_hash)=64),
+  page_count INTEGER NOT NULL CHECK(page_count BETWEEN 1 AND 100), empty_pages TEXT NOT NULL,
+  imported_at TEXT NOT NULL, parser_version TEXT NOT NULL CHECK(parser_version IN ('pdfjs-6.5.438','windows-ocr-en-us-v1')),
+  PRIMARY KEY(document_key,version)
+) STRICT;
+INSERT INTO document_versions_ocr SELECT * FROM document_versions;
+DROP TABLE document_versions;
+ALTER TABLE document_versions_ocr RENAME TO document_versions;`;

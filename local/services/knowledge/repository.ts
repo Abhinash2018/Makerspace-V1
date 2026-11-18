@@ -12,7 +12,7 @@ export class CorpusFailure extends Error {
 }
 export type DocumentVersion = Readonly<{ key: string; version: number; title: string; sourceHash: string; pageCount: number; emptyPages: readonly number[]; importedAt: string; parserVersion: string }>;
 export type PreparedDocument = Readonly<{ key: string; title: string; sourceHash: string; pageCount: number; emptyPages: readonly number[];
-  expectedVersion: number; chunks: readonly DocumentChunk[]; vectors: readonly (readonly number[])[] }>;
+  expectedVersion: number; parserVersion?: 'pdfjs-6.5.438' | 'windows-ocr-en-us-v1'; chunks: readonly DocumentChunk[]; vectors: readonly (readonly number[])[] }>;
 export type EvidenceChunk = Readonly<{ chunkId: string; document: DocumentVersion; ordinal: number; page: number; text: string; vector: readonly number[] }>;
 type VersionRow = { document_key: string; version: number; title: string; source_hash: string; page_count: number; empty_pages: string; imported_at: string; parser_version: string };
 const digest = /^[a-f0-9]{64}$/;
@@ -37,6 +37,13 @@ export function currentDocuments(directory: string): readonly DocumentVersion[] 
   const db = openKnowledge(directory);
   try { return Object.freeze(currentRows(db).map(document)); } finally { db.close(); }
 }
+// Remove active membership only. Immutable versions, private originals and indexes remain.
+export function retireDocument(directory: string, key: string) {
+  validateDocumentMetadata({ key, title: key });
+  const db = openKnowledge(directory);
+  try { return db.prepare('DELETE FROM current_documents WHERE document_key=?').run(key).changes === 1; }
+  finally { db.close(); }
+}
 export function publishDocuments(directory: string, identityInput: IndexIdentity, prepared: readonly PreparedDocument[], entireCorpus = false): readonly DocumentVersion[] {
   const identity = validateIndex(identityInput), bucket = indexKey(identity);
   if (!prepared.length || prepared.length > corpusLimits.documents || new Set(prepared.map(item => item.key)).size !== prepared.length) throw new CorpusFailure('invalid_document');
@@ -45,6 +52,7 @@ export function publishDocuments(directory: string, identityInput: IndexIdentity
     if (!digest.test(item.sourceHash) || !Number.isInteger(item.pageCount) || item.pageCount < 1 || item.pageCount > 100
       || !Number.isInteger(item.expectedVersion) || item.expectedVersion < 0 || item.expectedVersion > 10
       || !Array.isArray(item.emptyPages) || item.emptyPages.some((page, index) => !Number.isInteger(page) || page < 1 || page > item.pageCount || (index > 0 && page <= item.emptyPages[index - 1]!))
+      || (item.parserVersion !== undefined && !['pdfjs-6.5.438', 'windows-ocr-en-us-v1'].includes(item.parserVersion))
       || !item.chunks.length || item.chunks.length > 1000 || item.chunks.length !== item.vectors.length) throw new CorpusFailure('invalid_document');
     for (const [index, chunk] of item.chunks.entries()) {
       if (chunk.ordinal !== index + 1 || !Number.isInteger(chunk.page) || chunk.page < 1 || chunk.page > item.pageCount || item.emptyPages.includes(chunk.page)
@@ -72,11 +80,13 @@ export function publishDocuments(directory: string, identityInput: IndexIdentity
       for (const item of prepared) {
         const row = db.prepare('SELECT v.* FROM current_documents c JOIN document_versions v USING(document_key,version) WHERE document_key=?').get(item.key) as VersionRow | undefined;
         if ((row?.version ?? 0) !== item.expectedVersion) throw new CorpusFailure('version_conflict');
-        const changed = !row || row.source_hash !== item.sourceHash || row.title !== item.title;
-        const version = (row?.version ?? 0) + (changed ? 1 : 0);
+        const parserVersion = item.parserVersion ?? 'pdfjs-6.5.438';
+        const changed = !row || row.source_hash !== item.sourceHash || row.title !== item.title || row.parser_version !== parserVersion;
+        const previous = row?.version ?? (db.prepare('SELECT coalesce(max(version),0) AS n FROM document_versions WHERE document_key=?').get(item.key) as { n: number }).n;
+        const version = previous + (changed ? 1 : 0);
         if (version > corpusLimits.versions) throw new CorpusFailure('corpus_limits');
         if (changed) {
-          db.prepare('INSERT INTO document_versions VALUES (?,?,?,?,?,?,?,?)').run(item.key, version, item.title, item.sourceHash, item.pageCount, JSON.stringify(item.emptyPages), new Date().toISOString(), 'pdfjs-6.5.438');
+          db.prepare('INSERT INTO document_versions VALUES (?,?,?,?,?,?,?,?)').run(item.key, version, item.title, item.sourceHash, item.pageCount, JSON.stringify(item.emptyPages), new Date().toISOString(), parserVersion);
           db.prepare('INSERT INTO current_documents VALUES (?,?) ON CONFLICT(document_key) DO UPDATE SET version=excluded.version').run(item.key, version);
         } else if (row.page_count !== item.pageCount || row.empty_pages !== JSON.stringify(item.emptyPages)) throw new CorpusFailure('invalid_document');
         const membership = db.prepare('SELECT chunk_count FROM document_indexes WHERE index_key=? AND document_key=? AND version=?').get(bucket, item.key, version);

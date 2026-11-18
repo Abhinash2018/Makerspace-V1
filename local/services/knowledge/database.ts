@@ -2,11 +2,11 @@ import { lstatSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { checkRuntimePath, loadConfiguration } from '../../packages/config/index.mjs';
-import { knowledgeSchema, knowledgeColumns } from './schema.ts';
+import { knowledgeSchema, knowledgeColumns, ocrSchema } from './schema.ts';
 
 const owner = 'knowledge-foundation';
 const applicationId = 1297301506;
-const migrations = [owner, 'knowledge-approved-documents'];
+const migrations = [owner, 'knowledge-approved-documents', 'knowledge-local-ocr'];
 function filename(directory: string) {
   checkRuntimePath(path.parse(path.resolve(directory)).root, path.resolve(directory));
   const file = path.join(directory, 'knowledge.sqlite');
@@ -17,7 +17,7 @@ function filename(directory: string) {
 function schemaVersion(db: Database.Database) {
   const rows = db.prepare('SELECT version, name FROM schema_migrations ORDER BY version').all() as { version: number; name: string }[];
   const version = db.pragma('user_version', { simple: true }) as number;
-  if (db.pragma('application_id', { simple: true }) !== applicationId || ![1, 2].includes(version)
+  if (db.pragma('application_id', { simple: true }) !== applicationId || ![1, 2, 3].includes(version)
     || rows.length !== version || rows.some((row, index) => row.version !== index + 1 || row.name !== migrations[index])) throw new Error('migrations_required');
   const expected = version === 1 ? ['schema_migrations'] : Object.keys(knowledgeColumns).sort();
   const objects = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY name").all() as { name: string }[];
@@ -34,7 +34,7 @@ export function migrate(directory: string) {
   const db = new Database(file);
   try {
     db.pragma('busy_timeout = 1000');
-    db.pragma('foreign_keys = ON');
+    db.pragma('foreign_keys = OFF');
     db.transaction(() => {
       const tables = db.prepare("SELECT name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
       if (tables.length === 0 && db.pragma('application_id', { simple: true }) === 0 && db.pragma('user_version', { simple: true }) === 0) {
@@ -47,8 +47,14 @@ export function migrate(directory: string) {
         db.prepare('INSERT INTO schema_migrations (version,name,applied_at) VALUES (?,?,?)').run(2, migrations[1]!, new Date().toISOString());
         db.pragma('user_version = 2');
       }
-      if (schemaVersion(db) !== 2) throw new Error('migrations_required');
+      if (schemaVersion(db) === 2) {
+        db.exec(ocrSchema);
+        db.prepare('INSERT INTO schema_migrations (version,name,applied_at) VALUES (?,?,?)').run(3, migrations[2]!, new Date().toISOString());
+        db.pragma('user_version = 3');
+      }
+      if (schemaVersion(db) !== 3 || (db.pragma('foreign_key_check') as unknown[]).length) throw new Error('migrations_required');
     }).immediate();
+    db.pragma('foreign_keys = ON');
     db.pragma('journal_mode = WAL');
   } finally { db.close(); }
 }
@@ -57,7 +63,7 @@ export function readiness(directory: string): { ready: boolean; code: 'ready' | 
   try {
     db = new Database(filename(directory), { fileMustExist: true });
     db.pragma('busy_timeout = 1000');
-    if (schemaVersion(db) !== 2) return { ready: false, code: 'migrations_required' };
+    if (schemaVersion(db) !== 3) return { ready: false, code: 'migrations_required' };
     return { ready: true, code: 'ready' };
   } catch { return { ready: false, code: db ? 'migrations_required' : 'db_unavailable' }; }
   finally { db?.close(); }
@@ -66,7 +72,7 @@ export function openKnowledge(directory: string) {
   const db = new Database(filename(directory), { fileMustExist: true });
   try {
     db.pragma('busy_timeout = 1000'); db.pragma('foreign_keys = ON'); db.pragma('secure_delete = ON');
-    if (schemaVersion(db) !== 2) throw new Error('migrations_required');
+    if (schemaVersion(db) !== 3) throw new Error('migrations_required');
     return db;
   } catch (error) { db.close(); throw error; }
 }
