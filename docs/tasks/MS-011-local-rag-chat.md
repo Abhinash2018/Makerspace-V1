@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress |
+| Status | Accepted locally; publication tracked in PR #2 |
 | Branch | `feat/MS-011-local-rag-chat` |
 | Base | Accepted MS-007 main `720a82d3697c633c619d8130ba1862af44b5157e` |
 | Scope | User's 17 November correction: a local chatbot that answers students from the supplied PDFs, with conversational follow-ups |
@@ -26,12 +26,12 @@ The user's request explicitly authorizes using the provided PDFs as sources. Ins
 
 ## Acceptance
 
-- [ ] Real chat UI sends with Enter, supports follow-ups, shows generated responses/citations and keeps the composer available.
-- [ ] All thirteen provided PDFs are indexed completely; demo evidence is inactive; the user's 3D-printer-access example gets a useful source-grounded answer.
-- [ ] Follow-up context, supported/unsupported questions and real local-model generation are evaluated using the actual corpus and synthetic tests separately.
-- [ ] Strict auth/history/source/quote/bounds/model checks, cancellation, private-state clearing and failure recovery pass; no model-prior answer when evidence is missing.
-- [ ] Legacy excerpt API and unrelated check-in/photo/face/staff functionality remain compatible.
-- [ ] Lint/typecheck/build, relevant unit/process/browser checks, visual inspection and source/staging audit have actual evidence; verified publication follows standing workflow.
+- [x] Real chat UI sends with Enter, supports follow-ups, shows generated responses/citations and keeps the composer available.
+- [x] All thirteen provided PDFs are indexed completely; demo evidence is inactive; the user's 3D-printer-access example gets a useful source-grounded answer.
+- [x] Follow-up context, supported/unsupported questions and real local-model generation are evaluated using the actual corpus and synthetic tests separately.
+- [x] Strict auth/history/source/quote/bounds/model checks, cancellation, private-state clearing and failure recovery pass; no model-prior answer when evidence is missing.
+- [x] Legacy excerpt API and unrelated check-in/photo/face/staff functionality remain compatible.
+- [x] Lint/typecheck/build, relevant unit/process/browser checks, visual inspection and source/staging audit have actual evidence; verified publication follows standing workflow.
 
 ## Groups and evidence
 
@@ -40,7 +40,7 @@ The user's request explicitly authorizes using the provided PDFs as sources. Ins
 3. Chat UI, supplied-PDF import, real-corpus evaluation and browser checks.
 4. Regression/source audit and rebase/squash handoff.
 
-17 November: inspected the branch, relevant manifests/scripts, MS-004 specification, architecture, current excerpt-only implementation and all thirteen supplied PDF filenames. Current Ask uses a demo guide and a copied-quote-only prompt. No production records or new model downloads are required. Tests/import/evaluation are pending and are not marked passed.
+17 November: inspected the branch, relevant manifests/scripts, MS-004 specification, architecture, current excerpt-only implementation and all thirteen supplied PDF filenames. Current Ask uses a demo guide and a copied-quote-only prompt. No production records or new model downloads are required. At this initial inspection, tests/import/evaluation had not run.
 
 
 ### Supplied corpus review/import
@@ -63,7 +63,7 @@ All thirteen supplied PDFs were explicitly approved by the user’s request and 
 | sop-fff-multimaterial-feb26 | 18 | pdfjs-6.5.438 | `eb1d2ce35fbace76cd58112e5b76b95f272e56fe4430c3080686b33b05ec2cfc` |
 | sop-xtool-p2s-sep26 | 26 | pdfjs-6.5.438 | `6573fffeaf978b31177485aeebd0a750b4e3ef21bc589b4d62eb507e2d28c1c4` |
 
-Model adapter evaluation: the installed Qwen3 runner emitted internal reasoning despite `think:false` (also reproduced with `/no_think` and a raw no-thinking prefill). Real requests hit the 90-second deadline; these are failed trials, not accepted evidence. Already installed Mistral produces structured explanations. The first Mistral trials also exposed quote-copying errors and generation cost; source selection now returns aliases only and the server attaches verbatim passages. Two small Qwen2.5 models were subsequently installed by explicit operator CLI pulls for evaluation; their incomplete training/material answers were rejected. The final runtime uses the already installed Mistral model, with a simpler bounded answer/source-ID schema, three retrieved pages, user-question-only model history and a 110-second deadline. No request/startup downloads a model and no host-wide policy was changed. Final evaluation/checks remain pending.
+Model adapter evaluation: the installed Qwen3 runner emitted internal reasoning despite `think:false` (also reproduced with `/no_think` and a raw no-thinking prefill). Real requests hit the 90-second deadline; these are failed trials, not accepted evidence. Already installed Mistral produces structured explanations. The first Mistral trials also exposed quote-copying errors and generation cost; source selection now returns aliases only and the server attaches verbatim passages. Two small Qwen2.5 models were subsequently installed by explicit operator CLI pulls for evaluation; their incomplete training/material answers were rejected. The final runtime uses the already installed Mistral model, with a simpler bounded answer/source-ID schema, three retrieved pages, user-question-only model history and a 110-second deadline. No request/startup downloads a model and no host-wide policy was changed. Final verification is recorded below.
 
 Primary API references: [Ollama chat](https://docs.ollama.com/api/chat), [structured outputs](https://docs.ollama.com/capabilities/structured-outputs), [generation raw option](https://docs.ollama.com/api/generate), and [Qwen thinking controls](https://github.com/QwenLM/Qwen3).
 
@@ -77,7 +77,7 @@ Three retrieved distinct pages, at most two per document, keep local CPU work bo
 
 An initial access assertion required a reservation statement in the answer to a request-access question. The PDF distinguishes requesting equipment access from reserving printing time. The access criterion now verifies the access controls/training; a new, explicit reservation question keeps the original reservation requirement under test. The material case explicitly asks about ordinary printers as well, retaining the PLA/BYOF checks. No required check is skipped or marked passed without running.
 
-Earlier concurrent verification attempts exposed existing short-deadline tests under real-model/download contention: one 40 ms fake-provider inspection returned timeout rather than invalid-response; a later run timed out existing PDF/ingestion cases at 15 seconds while model files were being downloaded/verified. Existing guards/checks were retained. Final isolated idle-runtime regression runs and final real-corpus acceptance are recorded below when complete.
+Earlier concurrent verification attempts exposed existing short-deadline tests under real-model/download contention: one 40 ms fake-provider inspection returned timeout rather than invalid-response; a later run timed out existing PDF/ingestion cases at 15 seconds while model files were being downloaded/verified. Existing guards/checks were retained. Final passing runs and subsequent platform/performance findings are recorded below.
 
 ### Regression and platform findings
 
@@ -87,4 +87,16 @@ The five approved-corpus operator cases passed with Mistral on CPU at the four-p
 
 The first [PR #2 CI run](https://github.com/Abhinash2018/Makerspace-V1/actions/runs/44222313793) passed all Linux checks but exposed a Windows Server missing-input OCR hang at the existing 15-second test deadline. The fix validates local regular PDF input in Node before launching WinRT. No timeout or required test was disabled. Targeted OCR/ingestion checks passed (three cases), and valid OCR was rerun on the approved private manual: twelve pages, no empty pages.
 
-A later actual-browser cold model load exceeded the 110-second generation deadline with four retrieved pages and correctly returned unavailable. The final CPU budget is three pages (at most two/document), preserving the core prerequisite/access passages and reducing prefill work; targeted retrieval/engine/OCR checks passed (five cases), plus typecheck/lint. Final cold-browser/rates verification and full Windows/Linux CI for these fixes are tracked in [PR #2](https://github.com/Abhinash2018/Makerspace-V1/pull/2). Physical camera/Safari/iPad, new OS network-isolation/operations rollout and deployment remain separate.
+A later actual-browser cold model load exceeded the 110-second generation deadline with four retrieved pages and correctly returned unavailable. The final CPU budget is three pages (at most two/document), preserving the core prerequisite/access passages and reducing prefill work; targeted retrieval/engine/OCR checks passed (five cases), plus typecheck/lint. Final cold-browser/rates verification is recorded below; full Windows/Linux CI and publication for these fixes are tracked in [PR #2](https://github.com/Abhinash2018/Makerspace-V1/pull/2). Physical camera/Safari/iPad, new OS network-isolation/operations rollout and deployment remain separate.
+
+### Final live preview and handoff
+
+The final three-page profile passed an actual Chromium → Vite → gateway → knowledge → local Ollama cold-start question using the user’s exact “how to access 3d printer?” wording. Mistral was explicitly unloaded first. The answer named the FOM quiz, LinkedIn Learning FFF certificate, additional multi-material training and the equipment-access controls, with trusted SOP pages 2/14. No demo source was cited. A second actual browser question about the supplied Spring 2026 Prusa Mini rates correctly answered $1.00 internal and $1.50 external per hour, citing the supplied rates PDF page 1. This is a document-date-specific evaluation, not a claim about future/current rates.
+
+Desktop/mobile screenshots of the actual answers were visually reviewed. The browser checks passed with no horizontal overflow, no page errors, no external browser requests, zero localStorage/sessionStorage entries and cleared draft/conversation on exit/re-entry. The composer remains available under the scrollable thread. A separate live smoke verified the existing private staff login, protected history read and visitor reset without printing credentials or records. All services report ready at `http://127.0.0.1:5173`; the private staff credential and existing synthetic attendance/face state were preserved.
+
+Final operator status reports thirteen current documents, thirteen indexed, one index and `complete:true`; all 140 extracted pages are nonempty. Embeddings use `embeddinggemma:latest`, digest `85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1`, 768 dimensions and the unchanged page-v1 chunker. The synthetic preview guide is retired only from active retrieval. Runtime/original PDFs, pre-existing PDF moves, dependencies, secrets, databases, test screenshots and temporary helpers remain excluded from task commits.
+
+The source/staging audit verified committed runtime bytes against the tested isolated copy, documentation links/fragments, the unchanged original unrelated index fingerprint and only the task allowlist. Grouped commits are retained on `feat/MS-011-local-rag-chat`; private-worktree rebase and verified pushes follow the standing workflow. Latest complete Windows/Linux checks and the single main squash are recorded by [PR #2](https://github.com/Abhinash2018/Makerspace-V1/pull/2), avoiding a self-referential commit hash in this file. The initial failed Windows CI run is retained above as failure evidence; it is not counted as passed.
+
+Remaining limits: local CPU latency can approach the 110-second owner deadline; retry/stop handle unavailable work. Three-page retrieval and 1,200-character answers intentionally bound this hardware’s work. Provenance checks and the sampled real-corpus evaluation do not establish perfect paraphrase accuracy or authorization to use equipment. No physical-camera/Safari/iPad, new deployment/network-isolation, operations/backup or exhaustive real-corpus evaluation is claimed. These remain their separate task/device gates.
