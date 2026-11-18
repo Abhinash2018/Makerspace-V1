@@ -189,3 +189,14 @@ These sources explain external API/browser behavior; the service split and deplo
 - [Ollama model listing](https://docs.ollama.com/api/tags)
 - [Ollama embedding endpoint](https://docs.ollama.com/api/embed)
 - [MDN camera/microphone secure-context requirements](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+
+
+## Conversational PDF RAG (MS-011)
+
+The student Ask screen is now a conversation. Browser `POST /api/v1/chat` carries a normalized question and up to three alternating user/assistant pairs (10,000 UTF-8 history bytes). Gateway checks kiosk role, Origin, CSRF and a six-attempt/minute limit, forwards only this strict payload to token-authenticated `POST /internal/v1/chat`, cancels on disconnect and rechecks session access before returning. Each route accepts at most 16 KiB; replies are bounded to 32 KiB. Existing `/api/v1/question` and `/internal/v1/answers` remain compatible excerpt contracts.
+
+Knowledge combines the question with recent user questions for semantic/lexical retrieval from the current complete index. Broad access questions expand to prerequisite/account/reservation terms. Up to four distinct pages, at most three per document, go to the configured local CPU model; only prior user questions are model context; assistant claims never become model evidence. One active request per chat engine, no queue, 110-second deadline, model-digest and current-source checks bound work. A generated answer (at most 1,200 characters and 400 predicted tokens, CPU context 6,144) selects up to four source aliases; the server attaches original passages and immutable title/page/version/hash metadata. This validates provenance, not the semantic truth of paraphrases. No attendance/face data, tools, external search, cloud fallback or general Ollama proxy is involved.
+
+The browser retains at most twelve turns and sends only three completed pairs. New chat, leaving, unmounting, reset and access loss clear memory. No chat database, browser storage or prompt logging is added. Enter sends; Shift+Enter inserts a line break; stop and retry preserve the intended question without duplicate turns.
+
+Explicit operator ingestion supports `--ocr` for image-only PDFs on Windows with installed English OCR, using Windows.Data.Pdf and Windows.Media.Ocr in a bounded child process. Native PDF.js extraction stays unchanged. Knowledge migration 3 transactionally expands parser provenance without deleting version/chunk history; reindex respects the original parser. `knowledge retire --approved --key ...` removes active membership only and preserves originals/history. OCR is never invoked by a student request. See [MS-011](../tasks/MS-011-local-rag-chat.md) for actual-corpus and model verification.

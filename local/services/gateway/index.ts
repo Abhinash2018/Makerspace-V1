@@ -9,6 +9,7 @@ import { createStatus } from './status.ts';
 import { registerAuth } from './auth.ts';
 import { registerCheckin } from './checkin.ts';
 import { registerQuestions } from './questions.ts';
+import { registerChat } from './chat.ts';
 import { registerStaffHistory } from './history.ts';
 import { registerPhotos } from './photos.ts';
 import { registerFace } from './face.ts';
@@ -21,6 +22,7 @@ export function createGateway(config: Configuration, options: { assetDir?: strin
   const auth = registerAuth(app, { directory: path.join(config.runtime.root, 'gateway'), origins });
   registerCheckin(app, config, auth);
   registerQuestions(app, config, auth);
+  registerChat(app, config, auth);
   registerStaffHistory(app, config, auth);
   registerPhotos(app, config, auth);
   registerFace(app, config, auth);
