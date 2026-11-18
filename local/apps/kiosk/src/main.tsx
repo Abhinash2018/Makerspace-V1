@@ -44,14 +44,15 @@ function App() {
     return () => { lifetime.abort(); clearTimeout(timer); };
   }, []);
   const summary = offline ? 'Gateway unavailable' : !status ? 'Checking local services…' : status.state === 'ready' ? 'Local services ready' : status.state === 'degraded' ? 'Local AI needs attention' : 'Some services unavailable';
+  const chatting = begun && screen === 'question' && access.session?.role === 'kiosk';
   return <main>
     <header><div className="mark" aria-hidden="true">M</div><div><strong>INGRAM</strong><span>MAKERSPACE</span></div><span className="local">ON THIS DEVICE</span></header>
-    <div className="layout">
-      <section className="welcome" aria-labelledby="welcome-title">
-        <p className="eyebrow">A SPACE FOR WHAT’S NEXT</p>
+    <div className={chatting ? 'layout chat-layout' : 'layout'}>
+      <section className="welcome" aria-labelledby={chatting ? 'question-title' : 'welcome-title'}>
+        <div className="welcome-intro"><p className="eyebrow">A SPACE FOR WHAT’S NEXT</p>
         <h1 id="welcome-title">Ideas start<br />with <em>you.</em></h1>
         <p className="intro">Welcome to Ingram Makerspace. Get ready to learn, build, and bring something new to life.</p>
-        <p className="assistant-name">Ingram Makerspace Assistant</p>
+        <p className="assistant-name">Ingram Makerspace Assistant</p></div>
         {access.session?.role === 'staff' ? <section aria-label="Staff workspace">
           {!access.busy && <StaffHistory key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} />}
           {!access.busy && <StaffFaces key={`face-${access.session.csrfToken}`} session={access.session} onSessionInvalid={access.invalidate} />}
@@ -59,9 +60,9 @@ function App() {
           <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button>
         </section> : !begun ? <button className="begin" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(true); } }}>Begin <span aria-hidden="true">↗</span></button> : screen === 'checkin' && access.session?.role === 'kiosk' ? <CheckinForm onCameraChange={setCameraLive} key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'face' && access.session?.role === 'kiosk' ? <FaceCheckin key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onCameraChange={setCameraLive} onManual={() => setScreen('checkin')} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : screen === 'question' && access.session?.role === 'kiosk' ? <QuestionForm key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} onFinish={() => { setScreen('choices'); setBegun(false); void access.begin(); }} /> : <section className="choices" aria-labelledby="choices-title">
           <h2 id="choices-title" ref={heading} tabIndex={-1}>What would you like to do?</h2>
-          <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('question')}>Ask a question<span>Approved document evidence</span></button></div>
+          <div className="actions"><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('checkin')}>Check in<span>Self-reported visit</span></button><button disabled={access.busy || access.session?.role !== 'kiosk'} onClick={() => setScreen('question')}>Ask a question<span>Local PDF chatbot</span></button></div>
           {face.enabled && access.session?.role === 'kiosk' && <><button className="back" disabled={access.busy || !face.ready} onClick={() => setScreen('face')}>Returning visitor face check-in</button>{!face.ready && <p>Face check-in unavailable. Manual check-in remains available.</p>}<FaceWithdrawal key={access.session.csrfToken} session={access.session} onSessionInvalid={access.invalidate} /></>}
-          <p>Check in, look up approved document evidence, or speak with Makerspace staff for help.</p>
+          <p>Check in, chat with the local PDF assistant, or speak with Makerspace staff for help.</p>
           <button className="back" disabled={access.busy} onClick={async () => { if (await access.begin()) { setScreen('choices'); setBegun(false); } }}>Back to welcome</button>
         </section>}
       </section>
