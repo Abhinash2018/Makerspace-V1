@@ -8,7 +8,7 @@ it('supports semantic paraphrases without lexical overlap and bounds source/page
   const chunks = Array.from({ length: 8 }, (_, index) => chunk('a', index + 1, 'Synthetic workshop induction.'));
   chunks.push(chunk('b', 1, 'Synthetic device safety.'), chunk('b', 1, 'Duplicate page.'), chunk('c', 1, 'Irrelevant', [0, 1]));
   const result = rankChatEvidence('How do I get 3D printer access?', [1, 0], chunks);
-  expect(result.length).toBe(4); expect(result.filter(item => item.document.key === 'a')).toHaveLength(3);
+  expect(result.length).toBe(3); expect(result.filter(item => item.document.key === 'a')).toHaveLength(2);
   expect(result.some(item => item.document.key === 'b')).toBe(true); expect(result.some(item => item.document.key === 'c')).toBe(false);
 });
 it('uses recent user questions for retrieval but never treats assistant claims as evidence', () => {
@@ -21,7 +21,7 @@ it('allows generated explanations, attaches original passages and rejects nonexi
   const answer = 'First, finish the required staff training.';
   const result = validateGeneration({ answer, sources: ['S1'] }, evidence);
   expect(result).toMatchObject({ status: 'answered', sections: [{ text: answer, sources: [{ quote: evidence[0]!.text, citation: { title: 'Policy a', page: 2 } }] }] });
-  const badSources: ('S1' | 'S4')[][] = [['S4'], ['S1', 'S1']];
+  const badSources: ('S1' | 'S3')[][] = [['S3'], ['S1', 'S1']];
   for (const sources of badSources) {
     expect(validateGeneration({ answer, sources }, evidence).status).toBe('uncertain');
   }

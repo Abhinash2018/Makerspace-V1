@@ -8,7 +8,7 @@ import { selectedIndex, corpusStatus, evidenceChunks, currentDocuments, CorpusFa
 import { AnswerBusy } from './answers.ts';
 import { ChatFailure } from './chat.ts';
 
-export const generationSchema = z.strictObject({ answer: z.string().trim().max(1200), sources: z.array(z.enum(['S1', 'S2', 'S3', 'S4'])).max(4) });
+export const generationSchema = z.strictObject({ answer: z.string().trim().max(1200), sources: z.array(z.enum(['S1', 'S2', 'S3'])).max(3) });
 type Answer = Omit<Extract<ChatResponse, { status: 'answered' }>, 'requestId'> | Omit<Extract<ChatResponse, { status: 'uncertain' }>, 'requestId'>;
 const uncertain = (reason: Extract<ChatResponse, { status: 'uncertain' }>['reason']): Answer => ({ status: 'uncertain', reason, sections: [], disclaimer: chatDisclaimer });
 const ignored = new Set('a an and are as at be can do does for from how i in is it me my of on or the this to use using what when where which who with you your about that them they need'.split(' '));
@@ -36,9 +36,9 @@ export function rankChatEvidence(query: string, vector: readonly number[], chunk
   const result: EvidenceChunk[] = [], documents = new Map<string, number>(), pages = new Set<string>();
   for (const { chunk } of ranked) {
     const key = chunk.document.key, page = `${key}:${chunk.page}`;
-    if ((documents.get(key) ?? 0) >= 3 || pages.has(page)) continue;
+    if ((documents.get(key) ?? 0) >= 2 || pages.has(page)) continue;
     result.push(chunk); documents.set(key, (documents.get(key) ?? 0) + 1); pages.add(page);
-    if (result.length === 4) break;
+    if (result.length === 3) break;
   }
   return result;
 }

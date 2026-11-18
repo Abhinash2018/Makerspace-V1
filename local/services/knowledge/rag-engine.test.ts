@@ -29,7 +29,7 @@ it('grounds conversation in current sources, refuses bad model output and releas
       expect(data.sources[0]).toMatchObject({ source: 'S1', text }); expect(data.sources[0].page).toBeUndefined();
       if (mode === 'waiting') { started?.(); return; }
       if (mode === 'retired') retireDocument(directory, 'policy');
-      const output = mode === 'invalid' ? '{bad' : JSON.stringify({ answer: mode === 'unsupported' ? '' : 'Start by completing staff training.', sources: mode === 'unsupported' ? [] : [mode === 'injected' ? 'S4' : 'S1'], ...(mode === 'forged' ? { quote: 'Made up.' } : {}) });
+      const output = mode === 'invalid' ? '{bad' : JSON.stringify({ answer: mode === 'unsupported' ? '' : 'Start by completing staff training.', sources: mode === 'unsupported' ? [] : [mode === 'injected' ? 'S3' : 'S1'], ...(mode === 'forged' ? { quote: 'Made up.' } : {}) });
       res.end(JSON.stringify({ model: mode === 'wrong' ? 'other' : 'synthetic-chat:test', done: true, done_reason: mode === 'truncated' ? 'length' : 'stop',
         message: { role: 'assistant', content: output, ...(mode === 'tools' ? { tool_calls: [] } : {}) } }));
     });

@@ -3,12 +3,16 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { PdfExtraction } from './pdf.ts';
+import { readPdfSource } from './sources.ts';
 
 const extraction = z.strictObject({ pages: z.array(z.strictObject({ page: z.number().int().min(1).max(100), text: z.string().max(100000) })).min(1).max(100),
   pageCount: z.number().int().min(1).max(100), emptyPages: z.array(z.number().int().min(1).max(100)).max(100) });
 // Operator CLI only. The caller passes an already validated, private PDF copy.
 export async function extractOcr(file: string, signal: AbortSignal): Promise<PdfExtraction> {
   if (signal.aborted || process.platform !== 'win32' || !process.env.SystemRoot) throw new Error('ocr_unavailable');
+  // Invalid/non-local/oversized input must fail before loading WinRT. In
+  // particular, missing-file async operations can stall on Windows Server.
+  try { readPdfSource(file); } catch { throw new Error('ocr_unavailable'); }
   return new Promise((resolve, reject) => {
     const child = spawn(join(process.env.SystemRoot!, 'System32/WindowsPowerShell/v1.0/powershell.exe'),
       ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'RemoteSigned', '-File', fileURLToPath(new URL('./ocr-windows.ps1', import.meta.url)), '-InputFile', file],
