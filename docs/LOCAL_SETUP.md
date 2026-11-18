@@ -112,7 +112,30 @@ Knowledge owns `knowledge.sqlite` and `sources/<sha256>.pdf`. Keep them private,
 
 `pnpm knowledge:acceptance --cpu` explicitly runs a synthetic real-model acceptance probe using the already installed `embeddinggemma:latest` and disposable storage. Ordinary test suites use fake loopback providers and synthetic PDFs; Python is not required. Google Gemma license applies to EmbeddingGemma; institutional corpus/model approval is separate. This task does not establish real-policy grounding quality, which belongs to MS-004.
 
+## Conversational local PDF chat (MS-011)
+
+Set `OLLAMA_CHAT_MODEL` in the private `.env` to an already installed local model and restart. The current preview uses `mistral:latest` on CPU with `embeddinggemma:latest`; the installed Qwen runtime ignored `think:false` and timed out in real evaluation, so it is not the evaluated chat configuration. No model is downloaded automatically.
+
+Begin → Ask a question opens a chat thread. Type and press **Enter** or **Send**; **Shift+Enter** adds a line break. Ask follow-ups in the same conversation. Expand **Sources** to inspect the original passage and PDF page. **Stop response**, **Retry question** and **New chat** recover or clear work. Conversations clear on exit/session loss and never enter browser storage. Answers may paraphrase; citations establish source provenance but do not prove every claim. Ask staff when the PDFs lack the answer. CPU generation on this host takes about a minute and can be slower for a cold model. The owner deadline is 110 seconds; stop/retry remain available.
+
+Import each approved local PDF explicitly:
+
+```powershell
+pnpm knowledge ingest --approved --key workshop-policy --title "Workshop policy" --file "C:\approved\policy.pdf"
+# Image-only PDF: local Windows English OCR must already be installed.
+pnpm knowledge ingest --approved --ocr --key scanned-manual --title "Scanned manual" --file "C:\approved\manual.pdf"
+pnpm knowledge status
+# Removes active retrieval membership; preserves private original/version/index history.
+pnpm knowledge retire --approved --key synthetic-preview-guide
+```
+
+OCR uses the fixed local script under process-scoped RemoteSigned execution; it does not change machine policy, download language packs, or run on incoming HTTP requests. Non-Windows/missing-English OCR fails explicitly with `ocr_unavailable`; use a reviewed text-readable PDF there. Native extraction limits remain unchanged. OCR is fallible: review rendered pages/extracted text before accepting a corpus. Back up knowledge DB, private originals and embedding settings before migration 3; migration preserves existing sources and child references. Reindex OCR sources requires the same Windows OCR capability. Model/index changes still require a complete compatible index.
+
+The old excerpt endpoint remains available to existing consumers; the student screen uses `/api/v1/chat`. Browser/internal contracts are documented in [architecture](architecture/ARCHITECTURE.md#conversational-pdf-rag-ms-011), and import/evaluation evidence is in [MS-011](tasks/MS-011-local-rag-chat.md). The supplied PDF moves and runtime data are pre-existing workspace changes and are not published with application code.
+
 ## Grounded document questions (MS-004)
+
+Historical excerpt contract retained for API compatibility; the current student chat behavior is described above.
 
 First configure/import approved PDFs and check that `pnpm knowledge status` reports a complete compatible index. Set the separate `OLLAMA_CHAT_MODEL` in private `.env` to an already installed local chat model, then restart the services. This host was evaluated with `embeddinggemma:latest` for embeddings and `qwen3:4b` for chat, both explicitly on CPU. No request or startup command downloads a model. Missing/incompatible evidence or unavailable local models never enable a cloud fallback.
 

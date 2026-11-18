@@ -21,6 +21,7 @@
     "knowledge": "node services/knowledge/command.ts",
     "knowledge:acceptance": "node tests/knowledge-acceptance.ts",
     "answers:acceptance": "node tests/answers-acceptance.ts",
+    "chat:acceptance": "node tests/chat-acceptance.ts",
     "test:tooling": "node --test tests/tooling/*.test.mjs",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --project tsconfig.json",

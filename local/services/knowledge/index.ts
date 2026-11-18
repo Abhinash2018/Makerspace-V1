@@ -6,11 +6,13 @@ import { readiness } from './database.ts';
 import { inspectModel } from './ollama.ts';
 import { loadEmbeddingSettings } from './settings.ts';
 import { registerAnswers } from './answer-routes.ts';
+import { registerChat } from './chat-routes.ts';
 
 export function createKnowledge(config: Configuration) {
   loadEmbeddingSettings(config.runtime.knowledge);
   const app = makeServer({ service: 'knowledge', port: config.ports.knowledge, token: config.serviceToken, logLevel: config.logLevel });
   registerAnswers(app, config);
+  registerChat(app, config);
   app.get('/health/live', req => liveSchema.parse({ service: 'knowledge', live: true, requestId: req.id }));
   app.get('/health/ready', (req, reply) => {
     const status = readiness(config.runtime.knowledge);

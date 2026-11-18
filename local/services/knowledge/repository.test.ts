@@ -4,11 +4,21 @@ import path from 'node:path';
 import { expect, it } from 'vitest';
 import { migrate, openKnowledge } from './database.ts';
 import { chunkerVersion } from './chunks.ts';
-import { corpusStatus, currentDocuments, evidenceChunks, publishDocuments, type PreparedDocument } from './repository.ts';
+import { corpusStatus, currentDocuments, evidenceChunks, publishDocuments, retireDocument, type PreparedDocument } from './repository.ts';
 
 const identity = { model: 'synthetic:test', digest: 'a'.repeat(64), dimensions: 2, documentPrefix: '', queryPrefix: '', chunkerVersion };
 const fixture = (overrides: Partial<PreparedDocument> = {}): PreparedDocument => ({ key: 'training', title: 'Synthetic training', sourceHash: 'b'.repeat(64), pageCount: 2, emptyPages: [2], expectedVersion: 0,
   chunks: [{ ordinal: 1, page: 1, text: 'Synthetic tools require training.' }], vectors: [[1, 0]], ...overrides });
+it('retires active evidence without deleting history and never reuses an immutable retired version', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'ms011-retire-'));
+  try {
+    migrate(root); publishDocuments(root, identity, [fixture()]);
+    expect(retireDocument(root, 'training')).toBe(true); expect(retireDocument(root, 'training')).toBe(false);
+    expect(currentDocuments(root)).toEqual([]);
+    const db = openKnowledge(root); expect(db.prepare('SELECT count(*) AS n FROM document_versions').get()).toEqual({ n: 1 }); db.close();
+    expect(publishDocuments(root, identity, [fixture({ parserVersion: 'windows-ocr-en-us-v1' })])[0]).toMatchObject({ version: 2, parserVersion: 'windows-ocr-en-us-v1' });
+  } finally { expect(path.dirname(root)).toBe(path.resolve(tmpdir())); expect(path.basename(root).startsWith('ms011-retire-')).toBe(true); rmSync(root, { recursive: true, force: true }); }
+});
 it('atomically publishes immutable versions and compatible chunks, replays duplicates and rejects stale writers', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'ms003-index-'));
   try {
